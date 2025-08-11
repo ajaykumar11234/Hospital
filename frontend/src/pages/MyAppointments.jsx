@@ -173,14 +173,14 @@ catch(error){
             {/* Buttons */}
             <div className="flex flex-col justify-center gap-3 md:w-1/4">
             
-{!item.cancelled && item.payment && <button className="w-full px-4 py-2 bg-green-600 text-white rounded-full hover:bg-green-700 transition duration-200">Paid</button>}
-{!item.cancelled && !item.payment &&
+{!item.cancelled && item.payment && !item.isCompleted && <button className="w-full px-4 py-2 bg-green-600 text-white rounded-full hover:bg-green-700 transition duration-200">Paid</button>}
+{!item.cancelled && !item.payment && !item.isCompleted &&
               <button onClick={()=>appointmentRazorpay(item._id)}className="w-full px-4 py-2 bg-green-600 text-white rounded-full hover:bg-green-700 transition duration-200">
                 Pay Online
               </button>
 }
 
-              {!item.cancelled && !item.payment && (
+              {!item.cancelled && !item.payment && !item.isCompleted && (
                 <button
                   onClick={() => cancelAppointment(item._id)}
                   className="w-full px-4 py-2 bg-red-500 text-white rounded-full hover:bg-red-600 transition duration-200"
@@ -188,7 +188,17 @@ catch(error){
                   Cancel Appointment
                 </button>
               )}
-              {item.cancelled && <button className="w-full px-4 py-2 bg-red-500 text-white rounded-full hover:bg-red-600 transition duration-200">Appointment Cancelled</button>}
+              {item.cancelled && !item.isCompleted && <button className="w-full px-4 py-2 bg-red-500 text-white rounded-full hover:bg-red-600 transition duration-200">Appointment Cancelled</button>
+              }
+              {item.isCompleted && (
+  <button
+    disabled
+    className="w-full px-4 py-2 bg-gray-400 text-white rounded-full cursor-not-allowed select-none"
+  >
+    Completed
+  </button>
+)}
+
             </div>
           </div>
         ))}

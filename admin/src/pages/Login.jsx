@@ -1,14 +1,18 @@
 import React, { useState, useContext } from 'react';
 import axios from 'axios';
 import { AdminContext } from '../context/AdminContext';
-import { toast } from 'react-toastify'; // ✅ No ToastContainer needed here
+import { DoctorContext } from '../context/DoctorContext';
+import { toast } from 'react-toastify';
 import { useNavigate } from 'react-router-dom';
 
 const Login = () => {
   const [state, setState] = useState('Admin');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+
   const { setAToken, backendUrl } = useContext(AdminContext);
+  const { setDToken, backendurl } = useContext(DoctorContext);
+
   const navigate = useNavigate();
 
   const onSubmitHandler = async (event) => {
@@ -27,7 +31,16 @@ const Login = () => {
           toast.error(data.message || 'Login failed');
         }
       } else {
-        // TODO: Doctor login logic
+        const { data } = await axios.post(`${backendUrl}/api/doctor/login`, { email, password });
+
+        if (data.success) {
+          localStorage.setItem('dToken', data.token);
+          setDToken(data.token);
+          toast.success('Login successful!');
+          navigate('/doctor-dashboard'); // ✅ Redirect after login
+        } else {
+          toast.error(data.message || 'Login failed');
+        }
       }
     } catch (err) {
       toast.error(err.response?.data?.message || 'An error occurred during login');
