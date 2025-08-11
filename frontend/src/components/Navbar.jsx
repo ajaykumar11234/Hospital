@@ -7,13 +7,14 @@ const Navbar = () => {
   const navigate = useNavigate();
   const [showMenu, setShowMenu] = useState(false);
   const [showProfileMenu, setShowProfileMenu] = useState(false);
-  const { token, setToken } = useContext(AppContext);
+  const { token, setToken, user, setUser } = useContext(AppContext);
 
   const logout = () => {
-    setToken(''); // Correct way to clear token
+    setToken('');
+    setUser(null);
     localStorage.removeItem('token');
-    navigate('/'); // Redirect to home page
-    setShowProfileMenu(false); // Close profile menu
+    navigate('/');
+    setShowProfileMenu(false);
   };
 
   const toggleProfileMenu = () => setShowProfileMenu(prev => !prev);
@@ -49,7 +50,11 @@ const Navbar = () => {
                 className='flex items-center gap-2 cursor-pointer'
                 onClick={toggleProfileMenu}
               >
-                <img className='w-8 rounded-full' src={assets.profile_pic} alt="profile" />
+                <img
+                  className='w-8 h-8 rounded-full object-cover'
+                  src={user?.image || assets.profile_pic}
+                  alt="profile"
+                />
                 <img className='w-2.5' src={assets.dropdown_icon} alt="dropdown" />
               </div>
 

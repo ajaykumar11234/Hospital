@@ -31,8 +31,8 @@ const Navbar = () => {
   return (
     <div className="flex justify-between items-center p-4 bg-white shadow-md">
       <div className="flex items-center gap-4">
-        <img src={assets.admin_logo} alt="Admin Logo" className="h-10 w-auto" />
-        <p className="font-semibold text-gray-700 text-lg">
+        <img src={assets.logo} alt="Admin Logo" className="h-15 w-40" />
+        <p className="font-semibold text-gray-700 text-lg ml-10">
           {aToken ? 'Admin' : 'Doctor'}
         </p>
       </div>
