@@ -13,7 +13,10 @@ import Register from './pages/Register.jsx';
 import './index.css';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
-
+import SymptomChecker from './pages/SymptomChecker.jsx';
+import Chatbot from './pages/Chatbot.jsx';
+import ChatRoom from './components/PatientChatRoom.jsx';
+import PatientChatRoom from './components/PatientChatRoom.jsx';
 const App = () => {
   return (
     <>
@@ -49,6 +52,9 @@ const App = () => {
             <Route path='/appointment/:docId' element={<Appointment />} />
             <Route path='/login' element={<Login />} />
             <Route path='/register' element={<Register />} />
+            <Route path='/check-disease' element={<SymptomChecker/>}/>
+            <Route path="/chatbot" element={<Chatbot/>}/>
+            <Route path="/chat/:appointmentId" element={<PatientChatRoom />} /> 
           </Routes>
         </div>
       </div>

@@ -1,11 +1,14 @@
 import React, { useContext, useEffect } from 'react';
 import { DoctorContext } from '../../context/DoctorContext';
 import { AppContext } from '../../context/AppContext';
+import { useNavigate } from "react-router-dom";
 
 const DoctorAppointment = () => {
   const { dToken, appointments, getAppointments, completeAppointment, cancelAppointment } =
     useContext(DoctorContext);
   const { calculateAge } = useContext(AppContext);
+
+  const navigate = useNavigate(); // ✅ moved inside component
 
   useEffect(() => {
     if (dToken) {
@@ -18,12 +21,13 @@ const DoctorAppointment = () => {
       <h2 className="text-2xl font-bold mb-6 border-b pb-2">Doctor Appointments</h2>
 
       {/* Header Row */}
-      <div className="grid grid-cols-6 gap-4 font-semibold bg-gray-100 p-3 rounded-md">
+      <div className="grid grid-cols-7 gap-4 font-semibold bg-gray-100 p-3 rounded-md">
         <p>#</p>
         <p>Patient</p>
         <p>Payment</p>
         <p>Age</p>
         <p>Date & Time</p>
+        <p>Status</p>
         <p className="text-center">Action</p>
       </div>
 
@@ -32,7 +36,7 @@ const DoctorAppointment = () => {
         appointments.map((item, index) => (
           <div
             key={index}
-            className="grid grid-cols-6 gap-4 items-center border-b py-3 hover:bg-gray-50 transition"
+            className="grid grid-cols-7 gap-4 items-center border-b py-3 hover:bg-gray-50 transition"
           >
             {/* Index */}
             <p>{index + 1}</p>
@@ -58,27 +62,40 @@ const DoctorAppointment = () => {
             {/* Date & Time */}
             <p>{item.slotDate} - {item.slotTime}</p>
 
-            {/* Action */}
+            {/* Status */}
             {item.cancelled ? (
               <p className="text-red-500 font-medium text-center">Cancelled</p>
             ) : item.isCompleted ? (
               <p className="text-green-500 font-medium text-center">Completed</p>
             ) : (
-              <div className="flex justify-center gap-2">
-                <button
-                  onClick={() => completeAppointment(item._id)}
-                  className="px-3 py-1 bg-green-500 text-white rounded hover:bg-green-600 transition"
-                >
-                  Complete
-                </button>
-                <button
-                  onClick={() => cancelAppointment(item._id)}
-                  className="px-3 py-1 bg-red-500 text-white rounded hover:bg-red-600 transition"
-                >
-                  Cancel
-                </button>
-              </div>
+              <p className="text-blue-500 font-medium text-center">Active</p>
             )}
+
+            {/* Actions */}
+            <div className="flex justify-center gap-2">
+              {!item.cancelled && !item.isCompleted && (
+                <>
+                  <button
+                    onClick={() => completeAppointment(item._id)}
+                    className="px-3 py-1 bg-green-500 text-white rounded hover:bg-green-600 transition"
+                  >
+                    Complete
+                  </button>
+                  <button
+                    onClick={() => cancelAppointment(item._id)}
+                    className="px-3 py-1 bg-red-500 text-white rounded hover:bg-red-600 transition"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={() => navigate(`/chat/${item._id}`)} // ✅ navigate to DoctorChatRoom
+                    className="px-3 py-1 bg-blue-500 text-white rounded hover:bg-blue-600 transition"
+                  >
+                    Chat
+                  </button>
+                </>
+              )}
+            </div>
           </div>
         ))
       ) : (

@@ -6,6 +6,7 @@ import 'react-toastify/dist/ReactToastify.css';
 import { assets } from '../assets/assets_frontend/assets';
 import { AppContext } from '../context/AppContextProvider';
 import RelatedDoctors from '../components/RelatedDoctors';
+import ChatRoom from "../components/PatientChatRoom";
 
 const Appointment = () => {
   const { docId } = useParams();
@@ -258,6 +259,7 @@ const Appointment = () => {
             {isBooking ? 'Booking...' : 'Book an appointment'}
           </button>
         </div>
+   
       </div>
 
       <RelatedDoctors speciality={docInfo.speciality} docId={docInfo._id} />

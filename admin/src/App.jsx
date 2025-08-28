@@ -21,6 +21,7 @@ import DoctorsList from './pages/Admin/Doctorslist';
 import DoctorDashboard from './pages/Doctor/DoctorDashboard';
 import DoctorAppointment from './pages/Doctor/DoctorAppointment';
 import DoctorProfile from './pages/Doctor/DoctorProfile';
+import DoctorChatRoom from './pages/Doctor/DoctorChatRoom';
 
 const App = () => {
   const { aToken } = useContext(AdminContext);
@@ -54,6 +55,7 @@ const App = () => {
                     <Route path="/doctor-dashboard" element={<DoctorDashboard />} />
                     <Route path="/doctor-appointments" element={<DoctorAppointment />} />
                     <Route path="/doctor-profile" element={<DoctorProfile />} />
+                    <Route path="/doctor/chat/:appointmentId" element={<DoctorChatRoom />} />
                   </>
                 )}
               </Routes>

@@ -1,10 +1,12 @@
 import React, { useEffect, useContext } from "react";
 import { DoctorContext } from "../../context/DoctorContext";
 import { assets } from "../../assets/assets_admin/assets";
+import { useNavigate } from "react-router-dom";
 
 const DoctorDashboard = () => {
   const { dashData, getDashData, dToken, cancelAppointment } =
     useContext(DoctorContext);
+  const navigate = useNavigate();
 
   useEffect(() => {
     if (dToken) {
@@ -93,19 +95,35 @@ const DoctorDashboard = () => {
                   </div>
                 </div>
 
-                {/* Status / Action */}
-                <div>
+                {/* Status / Actions */}
+                <div className="flex gap-2">
                   {item.cancelled ? (
                     <p className="text-red-500 font-medium">Cancelled</p>
                   ) : item.isCompleted ? (
                     <p className="text-green-500 font-medium">Completed</p>
                   ) : (
-                    <button
-                      onClick={() => cancelAppointment(item._id)}
-                      className="px-3 py-1 bg-red-500 hover:bg-red-600 text-white text-sm rounded"
-                    >
-                      Cancel
-                    </button>
+                    <>
+                      {item.payment && (
+                        <button
+                          onClick={() => navigate(`/doctor/chat/${item._id}`)}
+                          className="px-3 py-1 bg-blue-500 hover:bg-blue-600 text-white text-sm rounded"
+                        >
+                          Chat
+                        </button>
+                      )}
+                      {!item.payment ? (
+                        <p className="text-yellow-600 font-medium text-sm">
+                          Awaiting Payment
+                        </p>
+                      ) : (
+                        <button
+                          onClick={() => cancelAppointment(item._id)}
+                          className="px-3 py-1 bg-red-500 hover:bg-red-600 text-white text-sm rounded"
+                        >
+                          Cancel
+                        </button>
+                      )}
+                    </>
                   )}
                 </div>
               </div>
