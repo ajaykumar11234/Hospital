@@ -19,8 +19,8 @@ const app = express();
 const port = process.env.PORT || 4000;
 
 // ---------- DB + Cloudinary ----------
-connectDB();
-connectCloudinary();
+connectDB().catch(err => console.error("❌ DB connection error:", err));
+connectCloudinary().catch(err => console.error("❌ Cloudinary init error:", err));
 
 // ---------- Allowed Origins ----------
 const allowedOrigins = [
@@ -30,6 +30,8 @@ const allowedOrigins = [
 ];
 if (process.env.FRONTEND_ORIGIN) {
   allowedOrigins.push(process.env.FRONTEND_ORIGIN);
+} else if (process.env.NODE_ENV === "production") {
+  allowedOrigins.push("*"); // Allow all origins in production if FRONTEND_ORIGIN not set
 }
 
 // ---------- Middlewares ----------
@@ -77,7 +79,6 @@ io.on("connection", (socket) => {
   // ---------- Join Room ----------
   socket.on("joinRoom", ({ appointmentId }) => {
     if (!appointmentId) return;
-
     socket.join(appointmentId);
     console.log(`➡️ ${socket.id} joined room ${appointmentId}`);
   });
@@ -86,7 +87,6 @@ io.on("connection", (socket) => {
   socket.on("chatMessage", async (data, ack) => {
     try {
       const { appointmentId, sender, text } = data;
-
       if (!appointmentId || !sender || !text?.trim()) {
         if (ack) ack({ ok: false, error: "Invalid message" });
         return;
@@ -94,7 +94,6 @@ io.on("connection", (socket) => {
 
       // Save message to DB
       const saved = await ChatMessage.create({ appointmentId, sender, text });
-
       const msgToSend = toClientDTO(saved);
 
       // Broadcast to the room
@@ -107,16 +106,15 @@ io.on("connection", (socket) => {
       if (ack) ack({ ok: false, error: "Failed to send message" });
     }
   });
-  // Listen for typing events
-socket.on("typing", ({ appointmentId, sender }) => {
-  socket.to(appointmentId).emit("typing", { sender });
-});
 
-// Listen for stop typing
-socket.on("stopTyping", ({ appointmentId, sender }) => {
-  socket.to(appointmentId).emit("stopTyping", { sender });
-});
+  // ---------- Typing indicators ----------
+  socket.on("typing", ({ appointmentId, sender }) => {
+    socket.to(appointmentId).emit("typing", { sender });
+  });
 
+  socket.on("stopTyping", ({ appointmentId, sender }) => {
+    socket.to(appointmentId).emit("stopTyping", { sender });
+  });
 
   // ---------- Disconnect ----------
   socket.on("disconnect", () => {
@@ -126,5 +124,5 @@ socket.on("stopTyping", ({ appointmentId, sender }) => {
 
 // ---------- Start server ----------
 server.listen(port, () => {
-  console.log('🚀 Server + Socket.IO running on port', port);
+  console.log(`🚀 Server + Socket.IO running on port ${port}`);
 });
