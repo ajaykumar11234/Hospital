@@ -36,16 +36,15 @@ const MyProfile = () => {
       const { data } = await axios.post(
         `${backendUrl}/api/user/update-profile`,
         formData,
-        { 
-          headers: { 
-            token
-          }
-        }
+        { headers: { token } }
       );
 
       if (data.success) {
         toast.success(data.message);
+
+        // ✅ Refresh profile data from backend (updates Navbar too)
         await loadUserProfileData();
+
         setIsEditing(false);
         setImageFile(null);
       } else {

@@ -59,7 +59,7 @@ const Navbar = () => {
         <ul className='hidden md:flex items-start gap-6 font-medium text-gray-700'>
           <NavLink to='/' className={linkClass} onClick={closeMenus}>Home</NavLink>
           <NavLink to='/check-disease' className={linkClass} onClick={closeMenus}>Check-Disease</NavLink>
-          <NavLink to='/chat/:' className={linkClass} onClick={closeMenus}>Chat-With-Doctor</NavLink>
+          {/* <NavLink to='/chat/:' className={linkClass} onClick={closeMenus}>Chat-With-Doctor</NavLink> */}
           <NavLink to='/chatbot' className={linkClass} onClick={closeMenus}>Chat-Bot</NavLink>
           <NavLink to='/doctors' className={linkClass} onClick={closeMenus}>All Doctors</NavLink>
           <NavLink to='/about' className={linkClass} onClick={closeMenus}>About</NavLink>
@@ -96,7 +96,7 @@ const Navbar = () => {
               onClick={() => { navigate('/login'); closeMenus(); }}
               className='bg-primary text-white px-6 py-2 rounded-full font-light hidden md:block'
             >
-              Create Account
+              Login
             </button>
           )}
 
@@ -129,7 +129,7 @@ const Navbar = () => {
               onClick={() => { navigate('/login'); closeMenus(); }}
               className='w-full bg-primary text-white px-4 py-2 rounded-full mt-2'
             >
-              Create Account
+              Login
             </button>
           )}
         </div>

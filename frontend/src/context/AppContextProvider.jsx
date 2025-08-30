@@ -9,12 +9,14 @@ const AppContextProvider = ({ children }) => {
   const [doctors, setDoctors] = useState([]);
   const [token, setToken] = useState(localStorage.getItem('token') || false);
   const [userData, setUserData] = useState(null);
+  const [user, setUser] = useState(null);   // ✅ added user for Navbar
   const backendUrl = import.meta.env.VITE_BACKEND_URL;
   const currencySymbol = '₹';
 
   const loadUserProfileData = useCallback(async () => {
     if (!token) {
       setUserData(null);
+      setUser(null);
       return;
     }
     
@@ -22,13 +24,16 @@ const AppContextProvider = ({ children }) => {
       const { data } = await axios.get(`${backendUrl}/api/user/get-profile`, {
         headers: { token } 
       });
+
       if (data.success) {
         setUserData(data.userData);
+        setUser(data.userData);   // ✅ keep Navbar synced
       } else {
         toast.error(data.message);
         setToken(false);
         localStorage.removeItem('token');
         setUserData(null);
+        setUser(null);
       }
     } catch (error) {
       toast.error("Failed to load user profile");
@@ -36,6 +41,7 @@ const AppContextProvider = ({ children }) => {
       setToken(false);
       localStorage.removeItem('token');
       setUserData(null);
+      setUser(null);
     }
   }, [backendUrl, token]);
 
@@ -73,10 +79,12 @@ const AppContextProvider = ({ children }) => {
     getDoctorsData,
     currencySymbol,
     token,
-    setToken: updateToken, // Use the wrapped version
+    setToken: updateToken,
     backendUrl,
     userData,
     setUserData,
+    user,          // ✅ now Navbar can access backend profile
+    setUser,       // ✅ allow manual update if needed
     loadUserProfileData
   };
 

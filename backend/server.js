@@ -32,7 +32,7 @@ if (process.env.FRONTEND_ORIGIN) {
   allowedOrigins.push(process.env.FRONTEND_ORIGIN);
 }
 
-// ---------- Express Middlewares ----------
+// ---------- Middlewares ----------
 app.use(express.json());
 app.use(
   cors({
@@ -62,14 +62,12 @@ const io = new Server(server, {
   },
 });
 
-// ---------- Helper: Normalize messages for frontend ----------
+// ---------- Helper: normalize messages ----------
 const toClientDTO = (doc) => ({
   _id: doc._id,
   appointmentId: doc.appointmentId,
-  senderId: doc.senderId,
-  senderName: doc.senderName,
-  senderRole: doc.senderRole,
-  text: doc.message,
+  sender: doc.sender,
+  text: doc.text,
   createdAt: doc.createdAt,
 });
 
@@ -77,54 +75,48 @@ io.on("connection", (socket) => {
   console.log("⚡ User connected:", socket.id);
 
   // ---------- Join Room ----------
-  socket.on("joinRoom", async ({ appointmentId }) => {
+  socket.on("joinRoom", ({ appointmentId }) => {
     if (!appointmentId) return;
 
     socket.join(appointmentId);
     console.log(`➡️ ${socket.id} joined room ${appointmentId}`);
-
-    // Load chat history and send to the newly joined user
-    try {
-      const history = await ChatMessage.find({ appointmentId }).sort({ createdAt: 1 });
-      const dtoHistory = history.map(toClientDTO);
-      socket.emit("history", dtoHistory);
-    } catch (err) {
-      console.error("Failed to load chat history:", err);
-    }
   });
 
   // ---------- Handle chat messages ----------
-  socket.on("chatMessage", async (payload, ack) => {
+  socket.on("chatMessage", async (data, ack) => {
     try {
-      const { appointmentId, senderId, senderName, senderRole, text } = payload || {};
+      const { appointmentId, sender, text } = data;
 
-      // Validate payload
-      if (!appointmentId || !senderId || !senderName || !senderRole || !text?.trim()) {
-        if (ack) ack({ ok: false, error: "Invalid payload" });
+      if (!appointmentId || !sender || !text?.trim()) {
+        if (ack) ack({ ok: false, error: "Invalid message" });
         return;
       }
 
       // Save message to DB
-      const saved = await ChatMessage.create({
-        appointmentId,
-        senderId,
-        senderName,
-        senderRole,
-        message: text.trim(),
-      });
+      const saved = await ChatMessage.create({ appointmentId, sender, text });
 
-      const dto = toClientDTO(saved);
+      const msgToSend = toClientDTO(saved);
 
-      // Broadcast message to the room
-      io.to(appointmentId).emit("message", dto);
+      // Broadcast to the room
+      io.to(appointmentId).emit("message", msgToSend);
 
       // Acknowledge sender
-      if (ack) ack({ ok: true, data: dto });
+      if (ack) ack({ ok: true, data: msgToSend });
     } catch (err) {
-      console.error("chatMessage error:", err);
+      console.error("❌ chatMessage error:", err);
       if (ack) ack({ ok: false, error: "Failed to send message" });
     }
   });
+  // Listen for typing events
+socket.on("typing", ({ appointmentId, sender }) => {
+  socket.to(appointmentId).emit("typing", { sender });
+});
+
+// Listen for stop typing
+socket.on("stopTyping", ({ appointmentId, sender }) => {
+  socket.to(appointmentId).emit("stopTyping", { sender });
+});
+
 
   // ---------- Disconnect ----------
   socket.on("disconnect", () => {
