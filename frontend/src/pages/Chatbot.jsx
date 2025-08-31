@@ -29,8 +29,7 @@ function Chatbot() {
 
       const botMsg = {
         sender: "bot",
-        text: botData.response_text,   // main response
-        safety: botData.safety_warning // always included
+        text: botData.response || "⚠️ Sorry, I didn't get a response from the server.",
       };
 
       setMessages((prev) => [...prev, botMsg]);
@@ -81,11 +80,6 @@ function Chatbot() {
                 }`}
               >
                 <p>{msg.text}</p>
-                {msg.safety && (
-                  <p className="mt-2 text-xs text-red-500 italic">
-                    {msg.safety}
-                  </p>
-                )}
               </div>
 
               {msg.sender === "user" && (
@@ -93,7 +87,9 @@ function Chatbot() {
               )}
             </div>
           ))}
-          {loading && <p className="text-gray-500 italic">Thinking...</p>}
+          {loading && (
+            <p className="text-gray-500 italic">🤖 Thinking...</p>
+          )}
         </div>
 
         {/* Input */}
