@@ -20,7 +20,7 @@ function SymptomChecker() {
 
     try {
       // ✅ Real API call to Flask backend
-      const res = await axios.post("http://127.0.0.1:5000/check-symptoms", {
+      const res = await axios.post("https://hospital-flask-4zk2.onrender.com/check-symptoms", {
         symptoms: symptoms.split(",").map(s => s.trim())
       });
 

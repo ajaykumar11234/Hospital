@@ -64,6 +64,11 @@ const Navbar = () => {
           <NavLink to='/doctors' className={linkClass} onClick={closeMenus}>All Doctors</NavLink>
           <NavLink to='/about' className={linkClass} onClick={closeMenus}>About</NavLink>
           <NavLink to='/contact' className={linkClass} onClick={closeMenus}>Contact</NavLink>
+          <a href="http://localhost:5174/" className={linkClass} onClick={closeMenus}>
+  Admin
+</a>
+
+          
         </ul>
 
         {/* Right Side */}
