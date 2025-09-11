@@ -1,17 +1,17 @@
 // --------------------- server.js ---------------------
-import express from "express";
-import cors from "cors";
-import dotenv from "dotenv";
+import express from 'express';
+import cors from 'cors';
+import dotenv from 'dotenv';
 import { createServer } from "http";
 import { Server } from "socket.io";
 
-import connectDB from "./config/mongodb.js";
-import connectCloudinary from "./config/cloudinary.js";
-import adminRouter from "./routes/adminRoute.js";
-import doctorRouter from "./routes/doctorRoute.js";
-import userRouter from "./routes/userRoute.js";
-import chatRouter from "./routes/chatRoute.js";
-import ChatMessage from "./models/ChatMessage.js";
+import connectDB from './config/mongodb.js';
+import connectCloudinary from './config/cloudinary.js';
+import adminRouter from './routes/adminRoute.js';
+import doctorRouter from './routes/doctorRoute.js';
+import userRouter from './routes/userRoute.js';
+import chatRouter from './routes/chatRoute.js';
+import ChatMessage from './models/ChatMessage.js';
 
 dotenv.config();
 
@@ -19,51 +19,52 @@ const app = express();
 const port = process.env.PORT || 4000;
 
 // ---------- DB + Cloudinary ----------
-connectDB().catch((err) => console.error("❌ DB connection error:", err));
-connectCloudinary().catch((err) =>
-  console.error("❌ Cloudinary init error:", err)
-);
+connectDB().catch(err => console.error("❌ DB connection error:", err));
+connectCloudinary().catch(err => console.error("❌ Cloudinary init error:", err));
 
-// ---------- Dynamic CORS Helper ----------
-const corsOptions = {
-  origin: (origin, callback) => {
-    if (!origin) {
-      // allow tools like Postman / curl
-      return callback(null, true);
-    }
+// ---------- Allowed Origins ----------
+const allowedOrigins = [
 
-    if (
-      origin.startsWith("http://localhost:") || // allow any localhost port
-      origin.endsWith(".onrender.com") || // allow all Render subdomains
-      (process.env.FRONTEND_ORIGIN && origin === process.env.FRONTEND_ORIGIN)
-    ) {
-      callback(null, true);
-    } else {
-      callback(new Error("❌ Not allowed by CORS: " + origin));
-    }
-  },
-  credentials: true,
-  methods: ["GET", "POST", "PUT", "DELETE"],
-};
+  "http://localhost:5173",
+  "http://localhost:5174",
+  "http://localhost:5175",
+  "https://hospital-frontend-pg72.onrender.com",
+  "https://hospital-9qs4.onrender.com",
+];
+if (process.env.FRONTEND_ORIGIN) {
+  allowedOrigins.push(process.env.FRONTEND_ORIGIN);
+} else if (process.env.NODE_ENV === "production") {
+  allowedOrigins.push("*"); // Allow all origins in production if FRONTEND_ORIGIN not set
+}
 
 // ---------- Middlewares ----------
 app.use(express.json());
-app.use(cors(corsOptions));
+app.use(
+  cors({
+    origin: allowedOrigins,
+    methods: ["GET", "POST", "PUT", "DELETE"],
+    credentials: true,
+  })
+);
 
 // ---------- API Routes ----------
-app.use("/api/admin", adminRouter);
-app.use("/api/doctor", doctorRouter);
-app.use("/api/user", userRouter);
-app.use("/api/chat", chatRouter);
+app.use('/api/admin', adminRouter);
+app.use('/api/doctor', doctorRouter);
+app.use('/api/user', userRouter);
+app.use('/api/chat', chatRouter);
 
-app.get("/", (req, res) => {
+app.get('/', (req, res) => {
   res.send("API Working Great..");
 });
 
 // ---------- Socket.IO setup ----------
 const server = createServer(app);
 const io = new Server(server, {
-  cors: corsOptions,
+  cors: {
+    origin: allowedOrigins,
+    methods: ["GET", "POST"],
+    credentials: true,
+  },
 });
 
 // ---------- Helper: normalize messages ----------
