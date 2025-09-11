@@ -15,7 +15,7 @@ import { Route, Routes } from 'react-router-dom';
 import Dashboard from './pages/Admin/Dashboard';
 import AddDoctor from './pages/Admin/AddDoctor';
 import AllAppointments from './pages/Admin/AllAppointments';
-import DoctorsList from './pages/Admin/DoctorList';
+import DoctorsList from './pages/Admin/DoctorsList';
 
 // Doctor pages
 import DoctorDashboard from './pages/Doctor/DoctorDashboard';
