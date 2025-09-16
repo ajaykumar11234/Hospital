@@ -171,7 +171,7 @@ const AdminContextProvider = ({ children }) => {
   // ---------------- Memoized Value ----------------
   const value = useMemo(() => ({
     aToken,
-    setToken,
+    setAToken,
     backendUrl,
 
     // Doctors
