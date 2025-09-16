@@ -6,7 +6,6 @@ import dotenv from "dotenv";
 import { createServer } from "http";
 import { Server } from "socket.io";
 
-// import "./scheduler/reminderScheduler.js";
 import connectDB from "./config/mongodb.js";
 import connectCloudinary from "./config/cloudinary.js";
 import adminRouter from "./routes/adminRoute.js";
@@ -30,7 +29,7 @@ const port = process.env.PORT || 4000;
 connectDB()
   .then(() => {
     console.log("✅ MongoDB connected");
-    startReminderScheduler(); // 🔄 Reload reminders into cron after DB is ready
+    startReminderScheduler();
   })
   .catch((err) => console.error("❌ DB connection error:", err));
 
@@ -43,13 +42,9 @@ const allowedOrigins = [
   "http://localhost:5173",
   "http://localhost:5174",
   "http://localhost:5175",
-  "https://virtual-health-assistant-admin.onrender.com", // ✅ fixed (removed slash)
+  "https://virtual-health-assistant-admin.onrender.com",
   "https://hospital-9qs4.onrender.com",
 ];
-
-if (process.env.FRONTEND_ORIGIN) {
-  allowedOrigins.push(process.env.FRONTEND_ORIGIN);
-}
 
 // ---------- Middlewares ----------
 app.use(express.json());
@@ -57,11 +52,16 @@ app.use(express.json());
 app.use(
   cors({
     origin: function (origin, callback) {
-      // allow requests with no origin (like mobile apps or curl)
-      if (!origin || allowedOrigins.includes(origin)) {
+      // ✅ Allow everything in production
+      if (process.env.NODE_ENV === "production") {
         callback(null, true);
       } else {
-        callback(new Error("Not allowed by CORS"));
+        // ✅ Restrict to allowed origins in dev
+        if (!origin || allowedOrigins.includes(origin)) {
+          callback(null, true);
+        } else {
+          callback(new Error("Not allowed by CORS"));
+        }
       }
     },
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
@@ -92,10 +92,14 @@ const server = createServer(app);
 const io = new Server(server, {
   cors: {
     origin: function (origin, callback) {
-      if (!origin || allowedOrigins.includes(origin)) {
+      if (process.env.NODE_ENV === "production") {
         callback(null, true);
       } else {
-        callback(new Error("Not allowed by CORS"));
+        if (!origin || allowedOrigins.includes(origin)) {
+          callback(null, true);
+        } else {
+          callback(new Error("Not allowed by CORS"));
+        }
       }
     },
     methods: ["GET", "POST"],
@@ -116,14 +120,12 @@ const toClientDTO = (doc) => ({
 io.on("connection", (socket) => {
   console.log("⚡ User connected:", socket.id);
 
-  // ---------- Join Chat Room ----------
   socket.on("joinRoom", ({ appointmentId }) => {
     if (!appointmentId) return;
     socket.join(appointmentId);
     console.log(`➡️ ${socket.id} joined room ${appointmentId}`);
   });
 
-  // ---------- Chat Messages ----------
   socket.on("chatMessage", async (data, ack) => {
     try {
       const { appointmentId, sender, text } = data;
@@ -144,7 +146,6 @@ io.on("connection", (socket) => {
     }
   });
 
-  // ---------- Typing Indicators ----------
   socket.on("typing", ({ appointmentId, sender }) => {
     socket.to(appointmentId).emit("typing", { sender });
   });
@@ -153,7 +154,6 @@ io.on("connection", (socket) => {
     socket.to(appointmentId).emit("stopTyping", { sender });
   });
 
-  // ---------- Video Call Signaling ----------
   socket.on("joinVideo", ({ appointmentId }) => {
     socket.join(`video-${appointmentId}`);
     console.log(`📹 ${socket.id} joined video room ${appointmentId}`);
@@ -171,7 +171,6 @@ io.on("connection", (socket) => {
     socket.to(`video-${appointmentId}`).emit("candidate", candidate);
   });
 
-  // ---------- Disconnect ----------
   socket.on("disconnect", () => {
     console.log("❌ User disconnected:", socket.id);
   });
