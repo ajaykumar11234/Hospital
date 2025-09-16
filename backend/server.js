@@ -47,7 +47,7 @@ const allowedOrigins = [
   "http://localhost:5173",
   "http://localhost:5174",
   "http://localhost:5175",
-  "https://hospital-frontend-pg72.onrender.com",
+  "https://virtual-health-assistant-admin.onrender.com/",
   "https://hospital-9qs4.onrender.com",
 ];
 if (process.env.FRONTEND_ORIGIN) {
