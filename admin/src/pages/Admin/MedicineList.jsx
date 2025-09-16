@@ -1,48 +1,23 @@
 import React, { useEffect, useState, useContext } from "react";
-import axios from "axios";
 import { AdminContext } from "../../context/AdminContext";
-import { toast } from "react-toastify";
 
 const MedicineList = () => {
-  const [medicines, setMedicines] = useState([]);
-  const [loading, setLoading] = useState(true);
   const [editingId, setEditingId] = useState(null);
   const [editData, setEditData] = useState({});
   const [imageFile, setImageFile] = useState(null);
 
-  const { backendUrl, aToken } = useContext(AdminContext);
+  const {
+    medicines,
+    medLoading,
+    getAllMedicines,
+    updateMedicine,
+    deleteMedicine,
+  } = useContext(AdminContext);
 
+  // Fetch medicines on mount
   useEffect(() => {
-    const fetchMedicines = async () => {
-      try {
-        const res = await axios.get(`${backendUrl}/api/medicines/all`, {
-          headers: { atoken: aToken },
-        });
-        setMedicines(res.data.data || []);
-      } catch (err) {
-        console.error(err);
-        toast.error(err.response?.data?.message || "Failed to fetch medicines");
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchMedicines();
-  }, [backendUrl, aToken]);
-
-  // Delete medicine
-  const handleDelete = async (id) => {
-    if (!window.confirm("Are you sure you want to delete this medicine?")) return;
-    try {
-      await axios.delete(`${backendUrl}/api/medicines/delete/${id}`, {
-        headers: { atoken: aToken },
-      });
-      setMedicines(medicines.filter((med) => med._id !== id));
-      toast.success("Medicine deleted successfully");
-    } catch (err) {
-      console.error(err);
-      toast.error(err.response?.data?.message || "Failed to delete medicine");
-    }
-  };
+    getAllMedicines();
+  }, []);
 
   // Start editing
   const handleEdit = (med) => {
@@ -65,27 +40,13 @@ const MedicineList = () => {
     setImageFile(null);
   };
 
-  // Update medicine
-  const handleUpdate = async (id) => {
-    try {
-      const formData = new FormData();
-      Object.keys(editData).forEach((key) => formData.append(key, editData[key]));
-      if (imageFile) formData.append("image", imageFile);
-
-      const res = await axios.put(`${backendUrl}/api/medicines/update/${id}`, formData, {
-        headers: { atoken: aToken },
-      });
-
-      setMedicines(medicines.map((med) => (med._id === id ? res.data.data : med)));
-      toast.success(res.data.message || "Medicine updated successfully");
-      handleCancel();
-    } catch (err) {
-      console.error(err);
-      toast.error(err.response?.data?.message || "Failed to update medicine");
-    }
+  // Save update
+  const handleUpdate = (id) => {
+    updateMedicine(id, editData, imageFile);
+    handleCancel();
   };
 
-  if (loading) return <p className="text-center mt-4">Loading medicines...</p>;
+  if (medLoading) return <p className="text-center mt-4">Loading medicines...</p>;
 
   return (
     <div className="p-6">
@@ -99,7 +60,6 @@ const MedicineList = () => {
               key={med._id}
               className="border rounded-lg shadow-md p-4 flex flex-col bg-white"
             >
-              {/* Image */}
               <img
                 src={imageFile && editingId === med._id ? URL.createObjectURL(imageFile) : med.imageUrl}
                 alt={med.name}
@@ -183,7 +143,7 @@ const MedicineList = () => {
                       Edit
                     </button>
                     <button
-                      onClick={() => handleDelete(med._id)}
+                      onClick={() => deleteMedicine(med._id)}
                       className="bg-red-600 text-white px-3 py-1 rounded hover:bg-red-700"
                     >
                       Delete
