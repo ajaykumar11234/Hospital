@@ -21,16 +21,11 @@ import { startReminderScheduler } from "./utils/reminderScheduler.js";
 import medicineRouter from "./routes/medicineRoute.js";
 import orderRouter from "./routes/orderRoute.js";
 
-// import { loadReminders } from "./utils/reminderScheduler.js";
-
-// import { loadReminders } from './routes/reminderRoute.js';
-
 dotenv.config();
 
 const app = express();
 const port = process.env.PORT || 4000;
 
-// ---------- DB + Cloudinary ----------
 // ---------- DB + Cloudinary ----------
 connectDB()
   .then(() => {
@@ -39,32 +34,44 @@ connectDB()
   })
   .catch((err) => console.error("❌ DB connection error:", err));
 
-connectCloudinary().catch((err) => console.error("❌ Cloudinary init error:", err));
-
+connectCloudinary().catch((err) =>
+  console.error("❌ Cloudinary init error:", err)
+);
 
 // ---------- Allowed Origins ----------
 const allowedOrigins = [
   "http://localhost:5173",
   "http://localhost:5174",
   "http://localhost:5175",
-  "https://virtual-health-assistant-admin.onrender.com",
+  "https://virtual-health-assistant-admin.onrender.com", // ✅ fixed (removed slash)
   "https://hospital-9qs4.onrender.com",
 ];
+
 if (process.env.FRONTEND_ORIGIN) {
   allowedOrigins.push(process.env.FRONTEND_ORIGIN);
-} else if (process.env.NODE_ENV === "production") {
-  allowedOrigins.push("*");
 }
 
 // ---------- Middlewares ----------
 app.use(express.json());
+
 app.use(
   cors({
-    origin: allowedOrigins,
-    methods: ["GET", "POST", "PUT", "DELETE"],
+    origin: function (origin, callback) {
+      // allow requests with no origin (like mobile apps or curl)
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error("Not allowed by CORS"));
+      }
+    },
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"],
     credentials: true,
   })
 );
+
+// Handle preflight requests
+app.options("*", cors());
 
 // ---------- API Routes ----------
 app.use("/api/admin", adminRouter);
@@ -73,11 +80,8 @@ app.use("/api/user", userRouter);
 app.use("/api/chat", chatRouter);
 app.use("/api/reminder", reminderRouter);
 app.use("/api/video", videoRouter);
-
 app.use("/api/medicines", medicineRouter);
 app.use("/api/orders", orderRouter);
-// app.use("/api/orders", orderRouter);
-
 
 app.get("/", (req, res) => {
   res.send("API Working Great..");
@@ -87,7 +91,13 @@ app.get("/", (req, res) => {
 const server = createServer(app);
 const io = new Server(server, {
   cors: {
-    origin: allowedOrigins,
+    origin: function (origin, callback) {
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error("Not allowed by CORS"));
+      }
+    },
     methods: ["GET", "POST"],
     credentials: true,
   },
