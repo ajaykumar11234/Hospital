@@ -16,12 +16,17 @@ import Dashboard from './pages/Admin/Dashboard';
 import AddDoctor from './pages/Admin/AddDoctor';
 import AllAppointments from './pages/Admin/AllAppointments';
 import DoctorsList from './pages/Admin/DoctorsList';
+import AddMedicine from './pages/Admin/AddMedicine.jsx';
 
 // Doctor pages
+import VideoCall from './pages/Doctor/VideoCall.jsx';
 import DoctorDashboard from './pages/Doctor/DoctorDashboard';
 import DoctorAppointment from './pages/Doctor/DoctorAppointment';
 import DoctorProfile from './pages/Doctor/DoctorProfile';
 import DoctorChatRoom from './pages/Doctor/DoctorChatRoom';
+import MedicineList from './pages/Admin/MedicineList.jsx';
+import AdminOrders from './pages/Admin/AdminOrders.jsx';
+
 
 const App = () => {
   const { aToken } = useContext(AdminContext);
@@ -46,6 +51,10 @@ const App = () => {
                     <Route path="/all-appointments" element={<AllAppointments />} />
                     <Route path="/add-doctor" element={<AddDoctor />} />
                     <Route path="/doctor-list" element={<DoctorsList />} />
+                    <Route path="/add-medicine" element={<AddMedicine />} />
+                    <Route path="/medicine" element={<MedicineList />} />
+                    <Route path="/orders" element={<AdminOrders />} />
+
                   </>
                 )}
 
@@ -56,6 +65,7 @@ const App = () => {
                     <Route path="/doctor-appointments" element={<DoctorAppointment />} />
                     <Route path="/doctor-profile" element={<DoctorProfile />} />
                     <Route path="/doctor/chat/:appointmentId" element={<DoctorChatRoom />} />
+                    <Route path="/video/:appointmentId" element={<VideoCall />} />
                   </>
                 )}
               </Routes>

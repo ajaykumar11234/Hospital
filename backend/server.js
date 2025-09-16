@@ -1,17 +1,29 @@
 // --------------------- server.js ---------------------
-import express from 'express';
-import cors from 'cors';
-import dotenv from 'dotenv';
+
+import express from "express";
+import cors from "cors";
+import dotenv from "dotenv";
 import { createServer } from "http";
 import { Server } from "socket.io";
 
-import connectDB from './config/mongodb.js';
-import connectCloudinary from './config/cloudinary.js';
-import adminRouter from './routes/adminRoute.js';
-import doctorRouter from './routes/doctorRoute.js';
-import userRouter from './routes/userRoute.js';
-import chatRouter from './routes/chatRoute.js';
-import ChatMessage from './models/ChatMessage.js';
+// import "./scheduler/reminderScheduler.js";
+import connectDB from "./config/mongodb.js";
+import connectCloudinary from "./config/cloudinary.js";
+import adminRouter from "./routes/adminRoute.js";
+import doctorRouter from "./routes/doctorRoute.js";
+import userRouter from "./routes/userRoute.js";
+import chatRouter from "./routes/chatRoute.js";
+import reminderRouter from "./routes/reminderRoute.js";
+import videoRouter from "./routes/videoRoute.js";
+import ChatMessage from "./models/ChatMessage.js";
+import { startReminderScheduler } from "./utils/reminderScheduler.js";
+
+import medicineRouter from "./routes/medicineRoute.js";
+import orderRouter from "./routes/orderRoute.js";
+
+// import { loadReminders } from "./utils/reminderScheduler.js";
+
+// import { loadReminders } from './routes/reminderRoute.js';
 
 dotenv.config();
 
@@ -19,12 +31,19 @@ const app = express();
 const port = process.env.PORT || 4000;
 
 // ---------- DB + Cloudinary ----------
-connectDB().catch(err => console.error("❌ DB connection error:", err));
-connectCloudinary().catch(err => console.error("❌ Cloudinary init error:", err));
+// ---------- DB + Cloudinary ----------
+connectDB()
+  .then(() => {
+    console.log("✅ MongoDB connected");
+    startReminderScheduler(); // 🔄 Reload reminders into cron after DB is ready
+  })
+  .catch((err) => console.error("❌ DB connection error:", err));
+
+connectCloudinary().catch((err) => console.error("❌ Cloudinary init error:", err));
+
 
 // ---------- Allowed Origins ----------
 const allowedOrigins = [
-
   "http://localhost:5173",
   "http://localhost:5174",
   "http://localhost:5175",
@@ -34,7 +53,7 @@ const allowedOrigins = [
 if (process.env.FRONTEND_ORIGIN) {
   allowedOrigins.push(process.env.FRONTEND_ORIGIN);
 } else if (process.env.NODE_ENV === "production") {
-  allowedOrigins.push("*"); // Allow all origins in production if FRONTEND_ORIGIN not set
+  allowedOrigins.push("*");
 }
 
 // ---------- Middlewares ----------
@@ -48,12 +67,19 @@ app.use(
 );
 
 // ---------- API Routes ----------
-app.use('/api/admin', adminRouter);
-app.use('/api/doctor', doctorRouter);
-app.use('/api/user', userRouter);
-app.use('/api/chat', chatRouter);
+app.use("/api/admin", adminRouter);
+app.use("/api/doctor", doctorRouter);
+app.use("/api/user", userRouter);
+app.use("/api/chat", chatRouter);
+app.use("/api/reminder", reminderRouter);
+app.use("/api/video", videoRouter);
 
-app.get('/', (req, res) => {
+app.use("/api/medicines", medicineRouter);
+app.use("/api/orders", orderRouter);
+// app.use("/api/orders", orderRouter);
+
+
+app.get("/", (req, res) => {
   res.send("API Working Great..");
 });
 
@@ -76,17 +102,18 @@ const toClientDTO = (doc) => ({
   createdAt: doc.createdAt,
 });
 
+// ---------- All socket events ----------
 io.on("connection", (socket) => {
   console.log("⚡ User connected:", socket.id);
 
-  // ---------- Join Room ----------
+  // ---------- Join Chat Room ----------
   socket.on("joinRoom", ({ appointmentId }) => {
     if (!appointmentId) return;
     socket.join(appointmentId);
     console.log(`➡️ ${socket.id} joined room ${appointmentId}`);
   });
 
-  // ---------- Handle chat messages ----------
+  // ---------- Chat Messages ----------
   socket.on("chatMessage", async (data, ack) => {
     try {
       const { appointmentId, sender, text } = data;
@@ -95,14 +122,11 @@ io.on("connection", (socket) => {
         return;
       }
 
-      // Save message to DB
       const saved = await ChatMessage.create({ appointmentId, sender, text });
       const msgToSend = toClientDTO(saved);
 
-      // Broadcast to the room
       io.to(appointmentId).emit("message", msgToSend);
 
-      // Acknowledge sender
       if (ack) ack({ ok: true, data: msgToSend });
     } catch (err) {
       console.error("❌ chatMessage error:", err);
@@ -110,13 +134,31 @@ io.on("connection", (socket) => {
     }
   });
 
-  // ---------- Typing indicators ----------
+  // ---------- Typing Indicators ----------
   socket.on("typing", ({ appointmentId, sender }) => {
     socket.to(appointmentId).emit("typing", { sender });
   });
 
   socket.on("stopTyping", ({ appointmentId, sender }) => {
     socket.to(appointmentId).emit("stopTyping", { sender });
+  });
+
+  // ---------- Video Call Signaling ----------
+  socket.on("joinVideo", ({ appointmentId }) => {
+    socket.join(`video-${appointmentId}`);
+    console.log(`📹 ${socket.id} joined video room ${appointmentId}`);
+  });
+
+  socket.on("offer", ({ appointmentId, offer }) => {
+    socket.to(`video-${appointmentId}`).emit("offer", offer);
+  });
+
+  socket.on("answer", ({ appointmentId, answer }) => {
+    socket.to(`video-${appointmentId}`).emit("answer", answer);
+  });
+
+  socket.on("candidate", ({ appointmentId, candidate }) => {
+    socket.to(`video-${appointmentId}`).emit("candidate", candidate);
   });
 
   // ---------- Disconnect ----------

@@ -17,6 +17,15 @@ import SymptomChecker from './pages/SymptomChecker.jsx';
 import Chatbot from './pages/Chatbot.jsx';
 import ChatRoom from './components/PatientChatRoom.jsx';
 import PatientChatRoom from './components/PatientChatRoom.jsx';
+import MedicineReminder from './pages/MedicineReminder.jsx';
+import VideoCall from './pages/VideoCall.jsx';
+import MyDoctors from './pages/MyDoctors.jsx';
+import BuyMedicine from "./pages/BuyMedicine";
+import MyOrders from './pages/MyOrders.jsx';
+
+
+
+
 const App = () => {
   return (
     <>
@@ -55,6 +64,13 @@ const App = () => {
             <Route path='/check-disease' element={<SymptomChecker/>}/>
             <Route path="/chatbot" element={<Chatbot/>}/>
             <Route path="/chat/:appointmentId" element={<PatientChatRoom />} /> 
+            <Route path="/reminder" element={<MedicineReminder />} />
+            <Route path="/video/:appointmentId" element={<VideoCall />} />
+            <Route path="/live-chat" element={<MyDoctors/>}/>
+            <Route path="/buy-medicine" element={<BuyMedicine />}/>
+            <Route path="/my-orders" element={<MyOrders />}/>
+
+
           </Routes>
         </div>
       </div>

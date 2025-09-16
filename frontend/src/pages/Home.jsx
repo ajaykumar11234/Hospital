@@ -18,8 +18,8 @@ const Home = () => {
     {/* <Chatbot/> */}
       <Header />
       <SpevialityMenu />
-      <TopDoctors />
-      <Banner/>
+      {/* <TopDoctors /> */}
+      {/* <Banner/> */}
       <Footer/>
     </div>
   )

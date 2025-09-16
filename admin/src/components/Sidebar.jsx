@@ -40,9 +40,27 @@ const Sidebar = () => {
             </NavLink>
           </li>
           <li>
+            <NavLink to="/add-medicine" className={linkClasses}>
+              <img src={assets.add_icon} alt="Doctors List" className="h-6 w-6" />
+              <p>Add Medicine</p>
+            </NavLink>
+          </li>
+          <li>
             <NavLink to="/doctor-list" className={linkClasses}>
               <img src={assets.people_icon} alt="Doctors List" className="h-6 w-6" />
               <p>Doctors List</p>
+            </NavLink>
+          </li>
+          <li>
+            <NavLink to="/orders" className={linkClasses}>
+              <img src={assets.people_icon} alt="Doctors List" className="h-6 w-6" />
+              <p>Orders</p>
+            </NavLink>
+          </li>
+          <li>
+          <NavLink to="/medicine" className={linkClasses}>
+              <img src={assets.appointment_icon} alt="Appointments" className="h-6 w-6" />
+              <p>Medicine Stock</p>
             </NavLink>
           </li>
         </ul>

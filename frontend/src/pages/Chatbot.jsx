@@ -20,16 +20,26 @@ function Chatbot() {
     setLoading(true);
 
     try {
-      const res = await axios.post("https://hospital-flask-4zk2.onrender.com/chat", {
+      const res = await axios.post("http://192.168.1.15:5000/chat", {
         user_id: userId,
         message: userMsg.text,
       });
 
       const botData = res.data;
 
+      let botMsgText = botData.response || "⚠️ Sorry, I didn't get a response.";
+
+      // If response is JSON object, keep it as an object
+      try {
+        const parsed = JSON.parse(botMsgText);
+        botMsgText = parsed;
+      } catch {
+        // Keep as string
+      }
+
       const botMsg = {
         sender: "bot",
-        text: botData.response || "⚠️ Sorry, I didn't get a response from the server.",
+        text: botMsgText,
       };
 
       setMessages((prev) => [...prev, botMsg]);
@@ -47,6 +57,26 @@ function Chatbot() {
 
   const handleKeyPress = (e) => {
     if (e.key === "Enter") sendMessage();
+  };
+
+  // Render message text safely
+  const renderMessageContent = (msg) => {
+    if (typeof msg.text === "object") {
+      return (
+        <div className="space-y-1">
+          {msg.text.disease && <p><strong>Disease:</strong> {msg.text.disease}</p>}
+          {msg.text.medications && (
+            <p><strong>Medications:</strong> {msg.text.medications.join(", ")}</p>
+          )}
+          {msg.text.precautions && (
+            <p><strong>Precautions:</strong> {msg.text.precautions.join(", ")}</p>
+          )}
+          {msg.text.note && <p>{msg.text.note}</p>}
+        </div>
+      );
+    } else {
+      return <p>{msg.text}</p>;
+    }
   };
 
   return (
@@ -79,7 +109,7 @@ function Chatbot() {
                     : "bg-gray-100 text-gray-800"
                 }`}
               >
-                <p>{msg.text}</p>
+                {renderMessageContent(msg)}
               </div>
 
               {msg.sender === "user" && (

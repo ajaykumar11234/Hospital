@@ -1,11 +1,12 @@
 import React, { useEffect, useState, useContext, useRef } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import { io } from "socket.io-client";
 import { AppContext } from "../context/AppContextProvider";
 import axios from "axios";
 
 const PatientChatRoom = () => {
   const { appointmentId } = useParams();
+  const navigate = useNavigate();
   const { token } = useContext(AppContext);
 
   const [socket, setSocket] = useState(null);
@@ -16,13 +17,18 @@ const PatientChatRoom = () => {
   const messagesEndRef = useRef(null);
 
   // Scroll to bottom when messages change
-  useEffect(() => messagesEndRef.current?.scrollIntoView({ behavior: "smooth" }), [messages]);
+  useEffect(
+    () => messagesEndRef.current?.scrollIntoView({ behavior: "smooth" }),
+    [messages]
+  );
 
   // Fetch chat history
   useEffect(() => {
     const fetchHistory = async () => {
       try {
-        const res = await axios.get(`http://localhost:4000/api/chat/${appointmentId}`);
+        const res = await axios.get(
+          `http://localhost:4000/api/chat/${appointmentId}`
+        );
         setMessages(res.data);
       } catch (err) {
         console.error("Failed to load chat history", err);
@@ -40,11 +46,17 @@ const PatientChatRoom = () => {
 
     newSocket.emit("joinRoom", { appointmentId });
 
-    newSocket.on("message", msg => setMessages(prev => [...prev, msg]));
+    newSocket.on("message", (msg) => setMessages((prev) => [...prev, msg]));
 
     // Typing indicator from doctor
-    newSocket.on("typing", ({ sender }) => sender === "doctor" && setTyping(true));
-    newSocket.on("stopTyping", ({ sender }) => sender === "doctor" && setTyping(false));
+    newSocket.on(
+      "typing",
+      ({ sender }) => sender === "doctor" && setTyping(true)
+    );
+    newSocket.on(
+      "stopTyping",
+      ({ sender }) => sender === "doctor" && setTyping(false)
+    );
 
     return () => newSocket.disconnect();
   }, [appointmentId, token]);
@@ -70,28 +82,60 @@ const PatientChatRoom = () => {
     socket.emit("stopTyping", { appointmentId, sender: "patient" });
   };
 
+  const startVideoCall = () => {
+    navigate(`/video/${appointmentId}`);
+  };
+
   return (
     <div className="flex flex-col h-[85vh] max-w-3xl mx-auto bg-white shadow-lg rounded-lg border">
-      <div className="p-4 bg-green-600 text-white rounded-t-lg">
+      {/* Header */}
+      <div className="p-4 bg-green-600 text-white rounded-t-lg flex justify-between items-center">
         <h2>Chat with Doctor (Appointment #{appointmentId})</h2>
+        <button
+          onClick={startVideoCall}
+          className="bg-white text-green-600 px-3 py-1 rounded-lg shadow hover:bg-gray-100 transition"
+        >
+          🎥 Start Video Call
+        </button>
       </div>
 
+      {/* Messages */}
       <div className="flex-1 overflow-y-auto p-4 space-y-2 bg-gray-50">
-        {messages.length === 0
-          ? <p className="text-center text-gray-500">No messages yet...</p>
-          : messages.map(msg => (
-            <div key={msg._id} className={`flex ${msg.sender === "patient" ? "justify-end" : "justify-start"}`}>
-              <div className={`px-4 py-2 rounded-lg max-w-xs ${msg.sender === "patient" ? "bg-green-500 text-white" : "bg-gray-200 text-gray-900"}`}>
+        {messages.length === 0 ? (
+          <p className="text-center text-gray-500">No messages yet...</p>
+        ) : (
+          messages.map((msg) => (
+            <div
+              key={msg._id}
+              className={`flex ${
+                msg.sender === "patient" ? "justify-end" : "justify-start"
+              }`}
+            >
+              <div
+                className={`px-4 py-2 rounded-lg max-w-xs ${
+                  msg.sender === "patient"
+                    ? "bg-green-500 text-white"
+                    : "bg-gray-200 text-gray-900"
+                }`}
+              >
                 <p>{msg.text}</p>
-                <span className="text-xs mt-1 opacity-70">{new Date(msg.createdAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}</span>
+                <span className="text-xs mt-1 opacity-70">
+                  {new Date(msg.createdAt).toLocaleTimeString([], {
+                    hour: "2-digit",
+                    minute: "2-digit",
+                  })}
+                </span>
               </div>
             </div>
           ))
-        }
-        {typing && <p className="text-sm text-gray-500 italic">Doctor is typing...</p>}
+        )}
+        {typing && (
+          <p className="text-sm text-gray-500 italic">Doctor is typing...</p>
+        )}
         <div ref={messagesEndRef} />
       </div>
 
+      {/* Input */}
       <div className="p-4 border-t flex gap-2">
         <input
           type="text"
@@ -101,7 +145,10 @@ const PatientChatRoom = () => {
           placeholder="Type your message..."
           className="flex-1 border rounded-lg px-4 py-2 focus:outline-none focus:ring focus:ring-green-300"
         />
-        <button onClick={sendMessage} className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition">
+        <button
+          onClick={sendMessage}
+          className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition"
+        >
           Send
         </button>
       </div>

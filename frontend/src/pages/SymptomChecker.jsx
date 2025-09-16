@@ -19,8 +19,7 @@ function SymptomChecker() {
     setResult(null);
 
     try {
-      // ✅ Real API call to Flask backend
-      const res = await axios.post("https://hospital-flask-4zk2.onrender.com/check-symptoms", {
+      const res = await axios.post("http://192.168.1.15:5000/check-symptoms", {
         symptoms: symptoms.split(",").map(s => s.trim())
       });
 
@@ -139,14 +138,17 @@ function SymptomChecker() {
                     <h4 className="text-lg font-semibold text-purple-800">Recommended Medications</h4>
                   </div>
                   <div className="flex flex-wrap gap-2">
-                    {result.medications.map((med, index) => (
-                      <span
-                        key={index}
-                        className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-purple-100 text-purple-800 border border-purple-200"
-                      >
-                        {med}
-                      </span>
-                    ))}
+                    {result.medications.map((med, index) => {
+                      const medName = typeof med === "string" ? med : med.name || JSON.stringify(med);
+                      return (
+                        <span
+                          key={index}
+                          className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-purple-100 text-purple-800 border border-purple-200"
+                        >
+                          {medName}
+                        </span>
+                      );
+                    })}
                   </div>
                 </div>
               )}
@@ -159,12 +161,15 @@ function SymptomChecker() {
                     <h4 className="text-lg font-semibold text-emerald-800">Precautions</h4>
                   </div>
                   <ul className="space-y-2">
-                    {result.precautions.map((precaution, index) => (
-                      <li key={index} className="flex items-start space-x-2">
-                        <div className="w-2 h-2 bg-emerald-500 rounded-full mt-2 flex-shrink-0"></div>
-                        <span className="text-emerald-700 font-medium">{precaution}</span>
-                      </li>
-                    ))}
+                    {result.precautions.map((precaution, index) => {
+                      const text = typeof precaution === "string" ? precaution : precaution.note || JSON.stringify(precaution);
+                      return (
+                        <li key={index} className="flex items-start space-x-2">
+                          <div className="w-2 h-2 bg-emerald-500 rounded-full mt-2 flex-shrink-0"></div>
+                          <span className="text-emerald-700 font-medium">{text}</span>
+                        </li>
+                      );
+                    })}
                   </ul>
                 </div>
               )}

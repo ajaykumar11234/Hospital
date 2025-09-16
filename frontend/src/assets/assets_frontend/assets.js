@@ -36,7 +36,13 @@ import General_physician from './General_physician.svg'
 import Gynecologist from './Gynecologist.svg'
 import Neurologist from './Neurologist.svg'
 import Pediatricians from './Pediatricians.svg'
-
+import reminder from './reminder.png'
+import chat from './chat.png'
+import chatbot from './chatbot.png'
+import stesthoscope from './stesthoscope.png'
+import booking from './booking.png'
+import person from './person.png'
+import medicalStore from './medicalStore.png'
 
 export const assets = {
     appointment_img,
@@ -55,7 +61,15 @@ export const assets = {
     dropdown_icon,
     upload_icon,
     stripe_logo,
-    razorpay_logo
+    razorpay_logo,
+    reminder,
+    chat,
+    chatbot,
+    booking,
+    stesthoscope,
+    person,
+    medicalStore
+
 }
 
 export const specialityData = [

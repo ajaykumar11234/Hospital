@@ -9,12 +9,12 @@ const Footer = () => {
         {/* Logo */}
         <div className="flex items-center gap-3">
           {/* <img src={assets.logo} alt="Logo" className="w-10 h-10 object-contain" /> */}
-          <span className="text-xl font-semibold">Medico</span>
+          <span className="text-xl font-semibold">Mediconnect</span>
         </div>
 
         {/* Legal Links */}
         <div className="text-center md:text-right space-y-1">
-          <p className="text-sm text-gray-600">© 2023 Medico. All rights reserved.</p>
+          <p className="text-sm text-gray-600">© 2023 Mediconnect. All rights reserved.</p>
           <p className="text-sm text-gray-600">
             <a href="#" className="hover:underline hover:text-primary">Privacy Policy</a> | <a href="#" className="hover:underline hover:text-primary">Terms of Service</a>
           </p>
@@ -22,16 +22,16 @@ const Footer = () => {
 
         {/* Social Media Icons */}
         <div className="flex gap-4 text-gray-500">
-          <a href="#"><FaFacebookF className="hover:text-primary transition" /></a>
-          <a href="#"><FaTwitter className="hover:text-primary transition" /></a>
-          <a href="#"><FaInstagram className="hover:text-primary transition" /></a>
-          <a href="#"><FaLinkedinIn className="hover:text-primary transition" /></a>
+          <a href="/"><FaFacebookF className="hover:text-primary transition" /></a>
+          <a href="/"><FaTwitter className="hover:text-primary transition" /></a>
+          <a href="https://www.instagram.com/_ajay_kumar_.01/"><FaInstagram className="hover:text-primary transition" /></a>
+          <a href="https://www.linkedin.com/in/ajaykumar-mekala/"><FaLinkedinIn className="hover:text-primary transition" /></a>
         </div>
       </div>
 
       {/* Bottom Note */}
       <div className="text-center text-sm text-gray-500 mt-6">
-        Built with ❤️ by the Ajay Kumar and Team
+        Built with ❤️ by the Ajay Kumar 
       </div>
     </div>
   );

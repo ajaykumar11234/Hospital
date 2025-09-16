@@ -19,6 +19,7 @@ const AddDoctor = () => {
   const [isSubmitting, setIsSubmitting] = useState(false); // New state for loading
 
   const { backendUrl, aToken } = useContext(AdminContext);
+  
 
   const handleImageUpload = (e) => {
     const file = e.target.files[0];

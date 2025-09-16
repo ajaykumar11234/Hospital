@@ -61,18 +61,25 @@ const Navbar = () => {
           <NavLink to='/check-disease' className={linkClass} onClick={closeMenus}>Check-Disease</NavLink>
           {/* <NavLink to='/chat/:' className={linkClass} onClick={closeMenus}>Chat-With-Doctor</NavLink> */}
           <NavLink to='/chatbot' className={linkClass} onClick={closeMenus}>Chat-Bot</NavLink>
+          <NavLink to='/reminder' className={linkClass} onClick={closeMenus}>Reminder</NavLink>
+          <NavLink to='/live-chat' className={linkClass} onClick={closeMenus}>Live Chat</NavLink>
+          
           <NavLink to='/doctors' className={linkClass} onClick={closeMenus}>All Doctors</NavLink>
           <NavLink to='/about' className={linkClass} onClick={closeMenus}>About</NavLink>
           <NavLink to='/contact' className={linkClass} onClick={closeMenus}>Contact</NavLink>
-          <a href="https://hospital-9qs4.onrender.com" className={linkClass} onClick={closeMenus}>
+          <NavLink to='/buy-medicine' className={linkClass} onClick={closeMenus}>Buy Medicine</NavLink>
+          {/* <Link to="/buy-medicine">Buy Medicine</Link>  */}
+          <a href="https://hospital-9qs4.onrender.com/" className={linkClass} onClick={closeMenus}>
   Admin
 </a>
+          
 
           
         </ul>
 
         {/* Right Side */}
         <div className='flex items-center gap-4 relative'>
+        
           {token ? (
             <div className='relative' ref={profileRef}>
               <button
@@ -82,7 +89,7 @@ const Navbar = () => {
               >
                 <img
                   className='w-8 h-8 rounded-full object-cover'
-                  src={user?.image || assets.profile_pic}
+                  src={user?.image || assets.person}
                   alt="profile"
                 />
                 <img className='w-2.5' src={assets.dropdown_icon} alt="dropdown" />
@@ -92,7 +99,9 @@ const Navbar = () => {
                 <div className='absolute top-12 right-0 bg-stone-100 rounded shadow-md p-4 z-30 min-w-[160px]'>
                   <p onClick={() => { navigate('/my-profile'); closeMenus(); }} className='hover:text-black cursor-pointer mb-2'>My Profile</p>
                   <p onClick={() => { navigate('/my-appointments'); closeMenus(); }} className='hover:text-black cursor-pointer mb-2'>My Appointments</p>
+                  <p onClick={() => { navigate('/my-orders'); closeMenus(); }} className='hover:text-black cursor-pointer mb-2'>My Orders</p>
                   <p onClick={logout} className='hover:text-black cursor-pointer'>Logout</p>
+                  {/* <a href="https://hospital-9qs4.onrender.com/" className={linkClass} onClick={closeMenus}>Doctor Login</a> */}
                 </div>
               )}
             </div>
@@ -125,9 +134,11 @@ const Navbar = () => {
           <NavLink to='/' className={linkClass} onClick={closeMenus}>Home</NavLink>
           <NavLink to='/check-disease' className={linkClass} onClick={closeMenus}>Check-Disease</NavLink>
           <NavLink to='/chatbot' className={linkClass} onClick={closeMenus}>Chat-Bot</NavLink>
+          <NavLink to='/reminder' className={linkClass} onClick={closeMenus}>Reminder</NavLink>
           <NavLink to='/doctors' className={linkClass} onClick={closeMenus}>All Doctors</NavLink>
           <NavLink to='/about' className={linkClass} onClick={closeMenus}>About</NavLink>
           <NavLink to='/contact' className={linkClass} onClick={closeMenus}>Contact</NavLink>
+          <NavLink to='/buy-medicine' className={linkClass} onClick={closeMenus}>Buy Medicine</NavLink>
 
           {!token && (
             <button
