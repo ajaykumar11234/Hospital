@@ -48,7 +48,7 @@ const allowedOrigins = [
   "http://localhost:5174",
   "http://localhost:5175",
   "https://virtual-health-assistant-admin.onrender.com",
-  "https://hospital-9qs4.onrender.com",
+  "https://virtual-health-assistant-app.onrender.com",
 ];
 if (process.env.FRONTEND_ORIGIN) {
   allowedOrigins.push(process.env.FRONTEND_ORIGIN);
