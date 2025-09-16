@@ -12,6 +12,15 @@ function BuyMedicine() {
   const { backendUrl, token } = useContext(AppContext);
   const navigate = useNavigate();
 
+  // Load Razorpay script dynamically
+  useEffect(() => {
+    const script = document.createElement("script");
+    script.src = "https://checkout.razorpay.com/v1/checkout.js";
+    script.async = true;
+    document.body.appendChild(script);
+    return () => document.body.removeChild(script);
+  }, []);
+
   // Fetch all medicines
   useEffect(() => {
     const fetchMedicines = async () => {
@@ -51,15 +60,20 @@ function BuyMedicine() {
 
   const totalPrice = cart.reduce((acc, item) => acc + item.price * item.qty, 0);
 
-  // Razorpay payment initiation
-  const initPay = (order) => {
+  // Razorpay payment initialization
+  const initPay = (razorpayOrder) => {
+    if (!window.Razorpay) {
+      toast.error("Razorpay SDK not loaded");
+      return;
+    }
+
     const options = {
       key: import.meta.env.VITE_RAZORPAY_KEY_ID,
-      amount: order.amount,
-      currency: order.currency,
+      amount: razorpayOrder.amount, // in paise
+      currency: razorpayOrder.currency,
       name: "Medicine Shop",
       description: "Medicine purchase",
-      order_id: order.id,
+      order_id: razorpayOrder.id,
       handler: async (response) => {
         try {
           const { razorpay_payment_id, razorpay_order_id, razorpay_signature } = response;
@@ -91,7 +105,7 @@ function BuyMedicine() {
     rzp.open();
   };
 
-  // Handle checkout
+  // Checkout handler
   const handleCheckout = async () => {
     if (cart.length === 0) {
       toast.error("Cart is empty!");
@@ -100,15 +114,14 @@ function BuyMedicine() {
 
     try {
       const medicines = cart.map((item) => ({ _id: item._id, qty: item.qty }));
-
       const { data } = await axios.post(
         `${backendUrl}/api/orders/checkout`,
         { cart: medicines },
         { headers: { token } }
       );
 
-      if (data.success && data.order) {
-        initPay(data.order);
+      if (data.success && data.razorpayOrder) {
+        initPay(data.razorpayOrder);
       } else {
         toast.error("Failed to initiate payment");
       }
@@ -136,16 +149,13 @@ function BuyMedicine() {
               className="mb-4 w-28 h-28 object-contain"
             />
             <h3 className="font-semibold mb-1 text-center">{product.name}</h3>
-            {/* {product.description && (
-              <p className="text-gray-600 text-sm mb-2 text-center">{product.description}</p>
-            )} */}
             <p className="mb-1 text-center font-medium">₹{product.price}</p>
             <p
               className={`mb-4 text-center text-sm ${
                 product.stock > 0 ? "text-green-600" : "text-red-600"
               }`}
             >
-              {product.stock > 0 ? '' : "Out of Stock"}
+              {product.stock > 0 ? "" : "Out of Stock"}
             </p>
 
             {product.stock > 0 ? (

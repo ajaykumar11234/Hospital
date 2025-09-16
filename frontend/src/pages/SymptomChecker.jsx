@@ -19,7 +19,7 @@ function SymptomChecker() {
     setResult(null);
 
     try {
-      const res = await axios.post("http://192.168.1.15:5000/check-symptoms", {
+      const res = await axios.post("http://127.0.0.1:5000/check-symptoms", {
         symptoms: symptoms.split(",").map(s => s.trim())
       });
 
