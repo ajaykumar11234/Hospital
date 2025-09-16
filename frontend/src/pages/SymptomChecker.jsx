@@ -19,11 +19,28 @@ function SymptomChecker() {
     setResult(null);
 
     try {
-      const res = await axios.post("http://127.0.0.1:5000/check-symptoms", {
-        symptoms: symptoms.split(",").map(s => s.trim())
+      const res = await axios.post("https://virtual-health-assistant-flask.onrender.com/check-symptoms", {
+        symptoms: symptoms.split(",").map((s) => s.trim()),
       });
 
-      setResult(res.data);
+      console.log("Backend response:", res.data);
+
+      // ✅ Normalize backend response to avoid crashes
+      const normalized = {
+        disease: res.data.disease || "Unknown",
+        medications: Array.isArray(res.data.medications)
+          ? res.data.medications
+          : res.data.medications
+          ? [res.data.medications]
+          : [],
+        precautions: Array.isArray(res.data.precautions)
+          ? res.data.precautions
+          : res.data.precautions
+          ? [res.data.precautions]
+          : [],
+      };
+
+      setResult(normalized);
     } catch (err) {
       console.error("API error:", err);
       setError("Unable to analyze symptoms. Please try again.");
@@ -33,7 +50,7 @@ function SymptomChecker() {
   };
 
   const handleKeyPress = (e) => {
-    if (e.key === 'Enter') {
+    if (e.key === "Enter") {
       handleCheck();
     }
   };
@@ -126,26 +143,37 @@ function SymptomChecker() {
             <div className="p-6 space-y-6">
               {/* Disease */}
               <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl p-4 border border-blue-100">
-                <h4 className="text-lg font-semibold text-blue-800 mb-2">Possible Condition</h4>
-                <p className="text-2xl font-bold text-blue-900">{result.disease}</p>
+                <h4 className="text-lg font-semibold text-blue-800 mb-2">
+                  Possible Condition
+                </h4>
+                <p className="text-2xl font-bold text-blue-900">
+                  {result.disease}
+                </p>
               </div>
 
               {/* Medications */}
-              {result.medications && (
+              {result.medications.length > 0 && (
                 <div className="bg-gradient-to-r from-purple-50 to-pink-50 rounded-xl p-4 border border-purple-100">
                   <div className="flex items-center space-x-2 mb-3">
                     <Pill className="h-5 w-5 text-purple-600" />
-                    <h4 className="text-lg font-semibold text-purple-800">Recommended Medications</h4>
+                    <h4 className="text-lg font-semibold text-purple-800">
+                      Recommended Medications
+                    </h4>
                   </div>
                   <div className="flex flex-wrap gap-2">
                     {result.medications.map((med, index) => {
-                      const medName = typeof med === "string" ? med : med.name || JSON.stringify(med);
+                      const medText =
+                        med == null
+                          ? "Unknown"
+                          : typeof med === "string"
+                          ? med
+                          : med.name || JSON.stringify(med);
                       return (
                         <span
                           key={index}
                           className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-purple-100 text-purple-800 border border-purple-200"
                         >
-                          {medName}
+                          {medText}
                         </span>
                       );
                     })}
@@ -154,19 +182,31 @@ function SymptomChecker() {
               )}
 
               {/* Precautions */}
-              {result.precautions && (
+              {result.precautions.length > 0 && (
                 <div className="bg-gradient-to-r from-emerald-50 to-green-50 rounded-xl p-4 border border-emerald-100">
                   <div className="flex items-center space-x-2 mb-3">
                     <Shield className="h-5 w-5 text-emerald-600" />
-                    <h4 className="text-lg font-semibold text-emerald-800">Precautions</h4>
+                    <h4 className="text-lg font-semibold text-emerald-800">
+                      Precautions
+                    </h4>
                   </div>
                   <ul className="space-y-2">
                     {result.precautions.map((precaution, index) => {
-                      const text = typeof precaution === "string" ? precaution : precaution.note || JSON.stringify(precaution);
+                      const precautionText =
+                        precaution == null
+                          ? "Unknown precaution"
+                          : typeof precaution === "string"
+                          ? precaution
+                          : precaution.note || JSON.stringify(precaution);
                       return (
-                        <li key={index} className="flex items-start space-x-2">
+                        <li
+                          key={index}
+                          className="flex items-start space-x-2"
+                        >
                           <div className="w-2 h-2 bg-emerald-500 rounded-full mt-2 flex-shrink-0"></div>
-                          <span className="text-emerald-700 font-medium">{text}</span>
+                          <span className="text-emerald-700 font-medium">
+                            {precautionText}
+                          </span>
                         </li>
                       );
                     })}
@@ -180,8 +220,10 @@ function SymptomChecker() {
               <div className="flex items-start space-x-3">
                 <AlertCircle className="h-5 w-5 text-amber-600 mt-0.5 flex-shrink-0" />
                 <p className="text-sm text-amber-800">
-                  <strong>Medical Disclaimer:</strong> This tool provides general health information only. 
-                  Please consult with a qualified healthcare professional for proper medical diagnosis and treatment.
+                  <strong>Medical Disclaimer:</strong> This tool provides general
+                  health information only. Please consult with a qualified
+                  healthcare professional for proper medical diagnosis and
+                  treatment.
                 </p>
               </div>
             </div>
