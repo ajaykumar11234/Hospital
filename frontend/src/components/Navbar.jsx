@@ -69,7 +69,7 @@ const Navbar = () => {
           <NavLink to='/contact' className={linkClass} onClick={closeMenus}>Contact</NavLink>
           <NavLink to='/buy-medicine' className={linkClass} onClick={closeMenus}>Buy Medicine</NavLink>
           {/* <Link to="/buy-medicine">Buy Medicine</Link>  */}
-          <a href="https://hospital-9qs4.onrender.com/" className={linkClass} onClick={closeMenus}>
+          <a href="https://virtual-health-assistant-admin.onrender.com/" className={linkClass} onClick={closeMenus}>
   Admin
 </a>
           
