@@ -26,7 +26,7 @@ const DoctorChatRoom = () => {
     const fetchHistory = async () => {
       try {
         const res = await axios.get(
-          `https://hospital-backend-k4l8.onrender.com/api/chat/${appointmentId}`
+          `https://virtual-health-assistant-backend.onrender.com/api/chat/${appointmentId}`
         );
         setMessages(res.data);
       } catch (err) {
@@ -40,7 +40,7 @@ const DoctorChatRoom = () => {
   useEffect(() => {
     if (!dToken) return;
 
-    const newSocket = io("http://localhost:4000", { query: { token: dToken } });
+    const newSocket = io("https://virtual-health-assistant-backend.onrender.com", { query: { token: dToken } });
     setSocket(newSocket);
 
     newSocket.emit("joinRoom", { appointmentId });
