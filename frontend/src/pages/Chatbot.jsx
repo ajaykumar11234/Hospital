@@ -20,7 +20,7 @@ function Chatbot() {
     setLoading(true);
 
     try {
-      const res = await axios.post("http://127.0.0.1:5000/chat", {
+      const res = await axios.post("https://virtual-health-assistant-flask.onrender.com/chat", {
         user_id: userId,
         message: userMsg.text,
       });
