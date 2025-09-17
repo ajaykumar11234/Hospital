@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import io from "socket.io-client";
 
-const socket = io("http://localhost:4000"); // ✅ local backend
+const socket = io("https://virtual-health-assistant-backend.onrender.com"); // ✅ local backend
 
 const Chat = ({ username, appointmentId }) => {
   const [message, setMessage] = useState("");

@@ -23,7 +23,7 @@ function MedicineReminder() {
 
   const fetchReminders = async () => {
     try {
-      const res = await fetch('http://localhost:4000/api/reminder/list', {
+      const res = await fetch('https://virtual-health-assistant-backend.onrender.com/api/reminder/list', {
         headers: { token },
       });
       if (res.ok) setReminders(await res.json());
@@ -42,7 +42,7 @@ function MedicineReminder() {
     if (!medicineName || !toEmail || !durationDays || times.some(t => !t)) return toast.error('Fill all fields');
 
     try {
-      const res = await fetch('http://localhost:4000/api/reminder/add', {
+      const res = await fetch('https://virtual-health-assistant-backend.onrender.com/api/reminder/add', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', token },
         body: JSON.stringify({ medicineName, times, toEmail, durationDays }),
@@ -57,7 +57,7 @@ function MedicineReminder() {
 
   const handleDelete = async (id) => {
     try {
-      const res = await fetch(`http://localhost:4000/api/reminder/delete/${id}`, {
+      const res = await fetch(`https://virtual-health-assistant-backend.onrender.com/api/reminder/delete/${id}`, {
         method: 'DELETE', headers: { token },
       });
       if (res.ok) setReminders(reminders.filter(r => r._id !== id));
