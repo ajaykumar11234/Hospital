@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import axios from "axios";
 import { Send, Bot, User } from "lucide-react";
 
@@ -10,6 +10,14 @@ function Chatbot() {
   const [loading, setLoading] = useState(false);
 
   const userId = "demo-user"; // Replace with actual user session in real app
+  const messagesEndRef = useRef(null); // Ref for auto scroll
+
+  const API_BASE = import.meta.env.VITE_FLASK_BACKEND_URL; // ✅ from .env
+
+  // Scroll to bottom whenever messages update
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages]);
 
   const sendMessage = async () => {
     if (!input.trim()) return;
@@ -20,28 +28,15 @@ function Chatbot() {
     setLoading(true);
 
     try {
-      const res = await axios.post("https://virtual-health-assistant-flask.onrender.com/chat", {
+      const res = await axios.post(`${API_BASE}/chat`, {
         user_id: userId,
         message: userMsg.text,
       });
 
       const botData = res.data;
-
       let botMsgText = botData.response || "⚠️ Sorry, I didn't get a response.";
 
-      // If response is JSON object, keep it as an object
-      try {
-        const parsed = JSON.parse(botMsgText);
-        botMsgText = parsed;
-      } catch {
-        // Keep as string
-      }
-
-      const botMsg = {
-        sender: "bot",
-        text: botMsgText,
-      };
-
+      const botMsg = { sender: "bot", text: botMsgText };
       setMessages((prev) => [...prev, botMsg]);
     } catch (err) {
       console.error(err);
@@ -59,7 +54,6 @@ function Chatbot() {
     if (e.key === "Enter") sendMessage();
   };
 
-  // Render message text safely
   const renderMessageContent = (msg) => {
     if (typeof msg.text === "object") {
       return (
@@ -80,13 +74,13 @@ function Chatbot() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-pink-50 via-purple-50 to-indigo-50 p-4">
-      <div className="max-w-3xl mx-auto bg-white/80 backdrop-blur-lg rounded-2xl shadow-xl border border-gray-200 p-6 flex flex-col h-[80vh]">
+    <div className="min-h-screen bg-gradient-to-br from-pink-50 via-purple-50 to-indigo-50 p-4 flex justify-center items-center">
+      <div className="w-full sm:w-[95%] md:w-3/4 lg:w-2/3 bg-white/90 backdrop-blur-lg rounded-2xl shadow-xl border border-gray-200 p-4 flex flex-col h-[80vh]">
         
         {/* Header */}
         <div className="flex items-center space-x-2 mb-4 border-b pb-3">
           <Bot className="h-6 w-6 text-purple-600" />
-          <h2 className="text-xl font-bold text-gray-800">AI Doctor Chatbot</h2>
+          <h2 className="text-lg sm:text-xl font-bold text-gray-800">AI Doctor Chatbot</h2>
         </div>
 
         {/* Messages */}
@@ -103,7 +97,7 @@ function Chatbot() {
               )}
 
               <div
-                className={`px-4 py-2 rounded-xl max-w-[75%] shadow ${
+                className={`px-3 sm:px-4 py-2 rounded-xl max-w-[75%] shadow break-words ${
                   msg.sender === "user"
                     ? "bg-blue-600 text-white ml-auto"
                     : "bg-gray-100 text-gray-800"
@@ -120,22 +114,23 @@ function Chatbot() {
           {loading && (
             <p className="text-gray-500 italic">🤖 Thinking...</p>
           )}
+          <div ref={messagesEndRef} />
         </div>
 
         {/* Input */}
-        <div className="mt-4 flex items-center space-x-2">
+        <div className="mt-4 flex flex-col sm:flex-row items-center space-y-2 sm:space-y-0 sm:space-x-2">
           <input
             type="text"
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyPress={handleKeyPress}
             placeholder="Type your symptoms or questions..."
-            className="flex-1 px-4 py-3 rounded-xl border border-gray-300 focus:ring-2 focus:ring-purple-500 focus:outline-none"
+            className="flex-1 px-4 py-3 rounded-xl border border-gray-300 focus:ring-2 focus:ring-purple-500 focus:outline-none w-full"
           />
           <button
             onClick={sendMessage}
             disabled={loading || !input.trim()}
-            className="bg-gradient-to-r from-purple-600 to-pink-600 text-white px-4 py-3 rounded-xl shadow hover:scale-105 transition"
+            className="bg-gradient-to-r from-purple-600 to-pink-600 text-white px-4 py-3 rounded-xl shadow hover:scale-105 transition w-full sm:w-auto"
           >
             <Send className="h-5 w-5" />
           </button>
