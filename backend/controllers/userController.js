@@ -6,7 +6,7 @@ import { v2 as cloudinary } from "cloudinary";
 import doctorModel from "../models/doctorModel.js";
 import appointmentModel from "../models/appointmentModel.js";
 import razorpay from "razorpay";
-
+import sendEmail from "../utils/sendEmail.js";
 // ------------------------ REGISTER USER ------------------------
 const registerUser = async (req, res) => {
   try {
@@ -129,11 +129,13 @@ const updateProfile = async (req, res) => {
 };
 
 // ------------------------ BOOK APPOINTMENT ------------------------
+//------------------------ BOOK APPOINTMENT ------------------------
 const bookAppointment = async (req, res) => {
   try {
     const userId = req.user.id; 
     const { docId, slotDate, slotTime } = req.body;
-    if (!userId || !docId || !slotDate || !slotTime) return res.status(400).json({ success: false, message: "Required fields are missing" });
+    if (!userId || !docId || !slotDate || !slotTime) 
+      return res.status(400).json({ success: false, message: "Required fields are missing" });
 
     const docData = await doctorModel.findById(docId).select("-password");
     if (!docData) return res.status(404).json({ success: false, message: "Doctor not found" });
@@ -153,18 +155,40 @@ const bookAppointment = async (req, res) => {
     const docDataForAppointment = { ...docData.toObject() };
     delete docDataForAppointment.slots_booked;
 
-    const appointmentData = { userId, docId, userData, docData: docDataForAppointment, amount: docData.fees, slotTime, slotDate, date: new Date() };
+    const appointmentData = { 
+      userId, 
+      docId, 
+      userData, 
+      docData: docDataForAppointment, 
+      amount: docData.fees, 
+      slotTime, 
+      slotDate, 
+      date: new Date() 
+    };
     const newAppointment = new appointmentModel(appointmentData);
     await newAppointment.save();
 
     await doctorModel.findByIdAndUpdate(docId, { slots_booked });
+
+    // ---------------- EMAIL SEND ----------------
+    const subject = "Appointment Confirmation";
+    const html = `
+      <h2>Appointment Confirmed ✅</h2>
+      <p>Dear <strong>${userData.name}</strong>,</p>
+      <p>You have successfully booked an appointment with 
+      <strong>Dr. ${docData.name}</strong> on 
+      <strong>${slotDate}</strong> at <strong>${slotTime}</strong>.</p>
+      <p>Appointment ID: ${newAppointment._id}</p>
+      <p>Thank you for using our Virtual Health Assistant!</p>
+    `;
+    await sendEmail(userData.email, subject, html);
+
     res.json({ success: true, message: "Appointment Booked", appointment: newAppointment });
   } catch (error) {
     console.error(error);
     res.status(500).json({ success: false, message: "Server error" });
   }
 };
-
 // ------------------------ LIST APPOINTMENTS ------------------------
 const listAppointment = async (req, res) => {
   try {

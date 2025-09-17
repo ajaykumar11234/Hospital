@@ -86,7 +86,7 @@ function BuyMedicine() {
           if (data.success) {
             toast.success("Payment successful & order placed!");
             setCart([]); // clear cart
-            navigate("/"); // redirect after success
+            navigate("/buy-medicine"); // redirect after success
           }
         } catch (error) {
           console.error(error);
@@ -202,7 +202,7 @@ function BuyMedicine() {
               onClick={handleCheckout}
               className="bg-green-600 text-white px-6 py-2 rounded hover:bg-green-700"
             >
-              Checkout
+              Order
             </button>
           </div>
         )}

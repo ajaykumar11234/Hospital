@@ -72,6 +72,8 @@ def clean_assistant_message(message):
     message = message.strip()
 
     return message
+
+
 @app.route("/chat", methods=["POST"])
 def chat():
     data = request.get_json()
@@ -81,47 +83,80 @@ def chat():
     if not user_id or not message:
         return jsonify({"error": "Send both user_id and message"}), 400
 
-    # Load user chat history
+    # ---------------------- STRICT MEDICAL QUERY FILTER ----------------------
+    MEDICAL_KEYWORDS = [
+        "symptom", "disease", "medicine", "treatment", "doctor", "fever",
+        "cough", "pain", "health", "diagnosis", "precaution", "appointment",
+        "therapy", "infection", "covid", "cancer", "flu", "allergy", "rash",
+        "blood", "cholesterol", "diabetes", "pressure", "asthma", "injury",
+        "surgery", "hospital", "prescription", "diet", "exercise", "patient",
+        "illness", "checkup", "scan", "operation", "dose","foods","eyes","food",
+    ]
+
+    def is_medical_query(msg: str) -> bool:
+        msg = msg.lower()
+        return any(word in msg for word in MEDICAL_KEYWORDS)
+
+    # ❌ Hard block general queries (don't call LLM)
+    if not is_medical_query(message):
+        return jsonify({
+            "response": "I can only help with medical-related queries such as symptoms, diseases, medicines, and precautions.",
+            "structured": {
+                "disease": None,
+                "medications": [],
+                "precautions": []
+            }
+        })
+
+    # ---------------------- LOAD HISTORY ----------------------
     history = chat_history.get(user_id, [])
     history.append({"role": "user", "content": message})
 
     try:
+        # ---------------------- CALL LLM ----------------------
         response = client.chat.completions.create(
             model=GROQ_MODEL,
-            messages=history,
+            messages=[
+                {
+                    "role": "system",
+                    "content": (
+                        "You are a strict medical assistant chatbot for patients. "
+                        "You must ONLY answer queries about health, symptoms, diseases, medicines, precautions, and treatments. "
+                        "If the query is unrelated, reply with: "
+                        "'I can only help with medical-related queries.'"
+                    )
+                }
+            ] + history,
             max_tokens=200,
             temperature=0.5
         )
 
         assistant_message = response.choices[0].message.content
-        assistant_message=clean_assistant_message(assistant_message)
-        # assistant_message = assistant_message.replace("\n", "<br />")
-        # assistant_message = re.sub(r"\*\*(.*?)\*\*", r"\1", assistant_message)
-        # assistant_message=re.sub(r'(\d+)\.', r'\n\1.', assistant_message)
+        assistant_message = clean_assistant_message(assistant_message)
+
+        # Save chat
         history.append({"role": "assistant", "content": assistant_message})
         chat_history[user_id] = history
 
-        # Try to parse assistant_message as JSON if possible
+        # ---------------------- TRY JSON PARSE ----------------------
         try:
             parsed_response = json.loads(assistant_message)
-            # Ensure keys exist
             disease = parsed_response.get("disease", "Unknown")
             medications = parsed_response.get("medications", [])
             precautions = parsed_response.get("precautions", [])
         except Exception:
-            # Fallback if assistant_message is plain text
             disease = None
             medications = []
             precautions = []
             parsed_response = None
 
         return jsonify({
-            "response": assistant_message,       # Raw message for text display
+            "response": assistant_message,
             "structured": {
                 "disease": disease,
                 "medications": medications,
                 "precautions": precautions,
-                "raw_json": parsed_response      # Keep original JSON if available
+                "raw_json": parsed_response
             }
         })
 

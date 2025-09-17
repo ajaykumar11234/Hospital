@@ -37,7 +37,7 @@ const featuresData = [
     name: 'Medical Store',
     description: 'Order your Medicine Online',
     icon: assets.medicalStore,
-    link: '/chatbot',
+    link: '/buy-medicine',
   },
 ];
 
