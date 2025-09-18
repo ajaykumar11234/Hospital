@@ -6,16 +6,23 @@ function AdminOrders() {
   const [selectedOrder, setSelectedOrder] = useState(null);
 
   useEffect(() => {
-    // Fetch only if not already loaded
     if (!orders || orders.length === 0) {
       getAllOrders();
     }
   }, [orders, getAllOrders]);
 
   if (ordersLoading)
-    return <p className="text-center mt-6 text-gray-600">Loading orders...</p>;
+    return (
+      <p className="text-center mt-6 text-gray-600 text-sm sm:text-base">
+        Loading orders...
+      </p>
+    );
   if (!orders || orders.length === 0)
-    return <p className="text-center mt-6 text-gray-500">No orders found.</p>;
+    return (
+      <p className="text-center mt-6 text-gray-500 text-sm sm:text-base">
+        No orders found.
+      </p>
+    );
 
   return (
     <div className="max-w-7xl mx-auto p-4 sm:p-6 font-sans">
@@ -23,54 +30,44 @@ function AdminOrders() {
         All Orders
       </h2>
 
-      {/* Orders List */}
-      <div className="grid gap-4 sm:gap-6">
+      {/* Scrollable Orders List */}
+      <div className="grid gap-4 sm:gap-6 max-h-[70vh] sm:max-h-full overflow-y-auto">
         {orders.map((order) => (
           <div
             key={order._id}
-            className="border rounded-lg p-4 shadow-sm bg-white hover:shadow-md transition"
+            className="border rounded-lg p-4 shadow-sm bg-white hover:shadow-md transition flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2 sm:gap-4"
           >
-            <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-2">
-              <span className="font-semibold text-sm sm:text-base">
-                Order ID:
-              </span>
-              <span className="text-sm sm:text-base break-words">
-                {order._id}
-              </span>
+            <div className="flex flex-col sm:flex-row sm:gap-4 w-full sm:w-auto justify-between">
+              <span className="font-semibold text-sm sm:text-base">Order ID:</span>
+              <span className="text-sm sm:text-base break-words">{order._id}</span>
             </div>
 
-            <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-2">
+            <div className="flex flex-col sm:flex-row sm:gap-4 w-full sm:w-auto justify-between">
               <span className="font-semibold text-sm sm:text-base">User:</span>
               <span className="text-sm sm:text-base">
                 {order.userId?.name} ({order.userId?.email})
               </span>
             </div>
 
-            <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-2">
-              <span className="font-semibold text-sm sm:text-base">
-                Status:
-              </span>
+            <div className="flex flex-col sm:flex-row sm:gap-4 w-full sm:w-auto justify-between">
+              <span className="font-semibold text-sm sm:text-base">Status:</span>
               <span
                 className={`font-semibold text-sm sm:text-base ${
-                  order.status === "Delivered"
-                    ? "text-green-600"
-                    : "text-yellow-600"
+                  order.status === "Delivered" ? "text-green-600" : "text-yellow-600"
                 }`}
               >
                 {order.status}
               </span>
             </div>
 
-            <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center font-semibold mt-2">
+            <div className="flex flex-col sm:flex-row sm:gap-4 w-full sm:w-auto justify-between font-semibold mt-2">
               <span className="text-sm sm:text-base">Total:</span>
-              <span className="text-sm sm:text-base">
-                ₹{order.totalAmount}
-              </span>
+              <span className="text-sm sm:text-base">₹{order.totalAmount}</span>
             </div>
 
             <button
               onClick={() => setSelectedOrder(order)}
-              className="mt-4 w-full sm:w-auto bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 text-sm sm:text-base"
+              className="mt-4 sm:mt-0 w-full sm:w-auto bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 text-sm sm:text-base transition"
             >
               View Details
             </button>
@@ -81,8 +78,8 @@ function AdminOrders() {
       {/* Modal */}
       {selectedOrder && (
         <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50 px-4">
-          <div className="bg-white rounded-lg p-6 max-w-lg w-full relative overflow-y-auto max-h-[90vh]">
-            <h3 className="text-lg sm:text-xl font-semibold mb-4">
+          <div className="bg-white rounded-lg p-6 w-full max-w-lg relative overflow-y-auto max-h-[90vh]">
+            <h3 className="text-lg sm:text-xl font-semibold mb-4 text-center">
               Order Details
             </h3>
             <button
@@ -121,8 +118,7 @@ function AdminOrders() {
                 <ul className="ml-4 mt-1 list-disc">
                   {selectedOrder.medicines.map((item) => (
                     <li key={item.medicineId?._id} className="mb-1">
-                      {item.medicineId?.name || "Deleted Medicine"} ×{" "}
-                      {item.quantity} - ₹
+                      {item.medicineId?.name || "Deleted Medicine"} × {item.quantity} - ₹
                       {(item.medicineId?.price || 0) * item.quantity}
                     </li>
                   ))}
@@ -134,6 +130,7 @@ function AdminOrders() {
               <span>Total Amount:</span>
               <span>₹{selectedOrder.totalAmount}</span>
             </div>
+
             <button
               onClick={() => setSelectedOrder(null)}
               className="mt-4 w-full bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600 text-sm sm:text-base"

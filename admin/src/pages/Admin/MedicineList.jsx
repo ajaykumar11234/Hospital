@@ -14,14 +14,12 @@ const MedicineList = () => {
     deleteMedicine,
   } = useContext(AdminContext);
 
-  // Fetch medicines only if not already loaded
   useEffect(() => {
     if (!medicines || medicines.length === 0) {
       getAllMedicines();
     }
   }, [medicines, getAllMedicines]);
 
-  // Start editing
   const handleEdit = (med) => {
     setEditingId(med._id);
     setEditData({
@@ -35,14 +33,12 @@ const MedicineList = () => {
     setImageFile(null);
   };
 
-  // Cancel editing
   const handleCancel = () => {
     setEditingId(null);
     setEditData({});
     setImageFile(null);
   };
 
-  // Save update
   const handleUpdate = (id) => {
     updateMedicine(id, editData, imageFile);
     handleCancel();
@@ -74,10 +70,9 @@ const MedicineList = () => {
                     : med.imageUrl
                 }
                 alt={med.name}
-                className="w-full h-40 sm:h-48 object-contain rounded mb-3"
+                className="w-full h-40 sm:h-48 object-cover rounded mb-3"
               />
 
-              {/* Editing State */}
               {editingId === med._id ? (
                 <>
                   <input
@@ -142,7 +137,8 @@ const MedicineList = () => {
                     onChange={(e) => setImageFile(e.target.files[0])}
                     className="mb-2 text-sm"
                   />
-                  <div className="flex justify-between gap-2 mt-2">
+
+                  <div className="flex flex-col sm:flex-row justify-between gap-2 mt-2">
                     <button
                       onClick={() => handleUpdate(med._id)}
                       className="flex-1 bg-green-600 text-white px-3 py-1 rounded hover:bg-green-700 text-sm sm:text-base"
@@ -159,18 +155,14 @@ const MedicineList = () => {
                 </>
               ) : (
                 <>
-                  <h3 className="text-lg sm:text-xl font-semibold mt-2">
-                    {med.name}
-                  </h3>
-                  <p className="text-gray-600 text-sm sm:text-base">
-                    {med.description.length > 80
-                      ? med.description.slice(0, 80) + "..."
-                      : med.description}
+                  <h3 className="text-lg sm:text-xl font-semibold mt-2">{med.name}</h3>
+                  <p className="text-gray-600 text-sm sm:text-base line-clamp-3">
+                    {med.description}
                   </p>
                   <p className="mt-1 text-sm sm:text-base">💰 Price: ₹{med.price}</p>
                   <p className="mt-1 text-sm sm:text-base">📦 Stock: {med.stock}</p>
                   <p className="mt-1 text-sm sm:text-base">🏷️ Category: {med.category}</p>
-                  <div className="flex justify-between mt-3 gap-2">
+                  <div className="flex flex-col sm:flex-row justify-between mt-3 gap-2">
                     <button
                       onClick={() => handleEdit(med)}
                       className="flex-1 bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700 text-sm sm:text-base"

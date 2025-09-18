@@ -8,11 +8,13 @@ const ActivePatients = () => {
 
   useEffect(() => {
     getActivePatients();
-  }, []);
+  }, [getActivePatients]);
 
   return (
     <div className="p-4 sm:p-6 bg-white shadow-md rounded-lg">
-      <h2 className="text-xl sm:text-2xl font-bold mb-6">Active Patients</h2>
+      <h2 className="text-xl sm:text-2xl font-bold mb-6 text-center sm:text-left">
+        Active Patients
+      </h2>
 
       {activePatients.length > 0 ? (
         <div className="flex flex-col gap-4">
@@ -29,9 +31,11 @@ const ActivePatients = () => {
                   className="w-14 h-14 sm:w-12 sm:h-12 rounded-full border object-cover"
                 />
                 <div className="flex flex-col">
-                  <p className="font-medium text-sm sm:text-base">{item.userData?.name}</p>
+                  <p className="font-medium text-sm sm:text-base">
+                    {item.userData?.name || "Unknown"}
+                  </p>
                   <p className="text-gray-500 text-xs sm:text-sm">
-                    {item.slotDate} - {item.slotTime}
+                    {item.slotDate || "-"} - {item.slotTime || "-"}
                   </p>
                 </div>
               </div>
@@ -49,7 +53,9 @@ const ActivePatients = () => {
           ))}
         </div>
       ) : (
-        <p className="text-gray-500 py-4 text-center">No active patients found</p>
+        <p className="text-gray-500 py-4 text-center">
+          No active patients found
+        </p>
       )}
     </div>
   );

@@ -15,28 +15,35 @@ const DoctorChatRoom = () => {
   const [typing, setTyping] = useState(false);
 
   const messagesEndRef = useRef(null);
+  const scrollRef = useRef(null);
 
-  // ✅ Auto scroll to last message
+  // Auto-scroll if near bottom
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    if (scrollRef.current) {
+      const { scrollTop, scrollHeight, clientHeight } = scrollRef.current;
+      if (scrollHeight - scrollTop <= clientHeight + 50) {
+        messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+      }
+    }
   }, [messages]);
 
-  // ✅ Fetch chat history
+  // Fetch chat history
   useEffect(() => {
     const fetchHistory = async () => {
       try {
         const res = await axios.get(
-          `https://virtual-health-assistant-backend.onrender.com/api/chat/${appointmentId}`
+          `https://virtual-health-assistant-backend.onrender.com/api/chat/${appointmentId}`,
+          { headers: { Authorization: `Bearer ${dToken}` } }
         );
         setMessages(res.data);
       } catch (err) {
         console.error("Failed to load history", err);
       }
     };
-    fetchHistory();
-  }, [appointmentId]);
+    if (dToken) fetchHistory();
+  }, [appointmentId, dToken]);
 
-  // ✅ Socket.IO connection
+  // Socket.IO connection
   useEffect(() => {
     if (!dToken) return;
 
@@ -46,19 +53,12 @@ const DoctorChatRoom = () => {
     newSocket.emit("joinRoom", { appointmentId });
 
     newSocket.on("message", (msg) => setMessages((prev) => [...prev, msg]));
-
-    // Typing indicator
-    newSocket.on("typing", ({ sender }) => {
-      if (sender === "patient") setTyping(true);
-    });
-    newSocket.on("stopTyping", ({ sender }) => {
-      if (sender === "patient") setTyping(false);
-    });
+    newSocket.on("typing", ({ sender }) => sender === "patient" && setTyping(true));
+    newSocket.on("stopTyping", ({ sender }) => sender === "patient" && setTyping(false));
 
     return () => newSocket.disconnect();
   }, [appointmentId, dToken]);
 
-  // ✅ Handle typing
   const handleChange = (e) => {
     setNewMessage(e.target.value);
     if (!socket) return;
@@ -70,68 +70,54 @@ const DoctorChatRoom = () => {
     }
   };
 
-  // ✅ Send message
   const sendMessage = () => {
     if (!newMessage.trim() || !socket) return;
-
     const msgData = { appointmentId, sender: "doctor", text: newMessage };
-
     socket.emit("chatMessage", msgData);
+    setMessages((prev) => [...prev, { ...msgData, createdAt: new Date().toISOString() }]);
     setNewMessage("");
     socket.emit("stopTyping", { appointmentId, sender: "doctor" });
-  };
-
-  // ✅ Navigate to video call
-  const startVideoCall = () => {
-    navigate(`/video/${appointmentId}`);
   };
 
   return (
     <div className="flex flex-col h-[85vh] max-w-3xl mx-auto bg-white shadow-lg rounded-lg border">
       {/* Header */}
-      <div className="p-4 bg-blue-600 text-white rounded-t-lg flex justify-between items-center">
-        <h2>Chat with Patient (Appointment #{appointmentId})</h2>
+      <div className="p-4 bg-blue-600 text-white rounded-t-lg flex flex-col sm:flex-row justify-between items-center gap-2 sm:gap-0">
+        <h2 className="text-lg sm:text-xl font-semibold">
+          Chat with Patient (Appointment #{appointmentId})
+        </h2>
         <button
-          onClick={startVideoCall}
-          className="px-3 py-1 bg-green-500 hover:bg-green-600 rounded-lg text-white text-sm"
+          onClick={() => navigate(`/video/${appointmentId}`)}
+          className="px-3 py-1 bg-green-500 hover:bg-green-600 rounded-lg text-white text-sm sm:text-base"
         >
           📹 Start Video Call
         </button>
       </div>
 
       {/* Messages */}
-      <div className="flex-1 overflow-y-auto p-4 space-y-2 bg-gray-50">
+      <div ref={scrollRef} className="flex-1 overflow-y-auto p-4 space-y-2 bg-gray-50">
         {messages.length === 0 ? (
           <p className="text-center text-gray-500">No messages yet...</p>
         ) : (
-          messages.map((msg) => (
+          messages.map((msg, idx) => (
             <div
-              key={msg._id}
-              className={`flex ${
-                msg.sender === "doctor" ? "justify-end" : "justify-start"
-              }`}
+              key={msg._id || idx}
+              className={`flex ${msg.sender === "doctor" ? "justify-end" : "justify-start"}`}
             >
-              <div
-                className={`px-4 py-2 rounded-lg max-w-xs ${
-                  msg.sender === "doctor"
-                    ? "bg-blue-500 text-white"
-                    : "bg-gray-200 text-gray-900"
-                }`}
-              >
+              <div className={`px-4 py-2 rounded-lg max-w-xs break-words ${
+                msg.sender === "doctor" ? "bg-blue-500 text-white" : "bg-gray-200 text-gray-900"
+              }`}>
                 <p>{msg.text}</p>
-                <span className="text-xs mt-1 opacity-70 block">
-                  {new Date(msg.createdAt).toLocaleTimeString([], {
-                    hour: "2-digit",
-                    minute: "2-digit",
-                  })}
+                <span className="text-xs mt-1 opacity-70 block text-right">
+                  {msg.createdAt
+                    ? new Date(msg.createdAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
+                    : "-"}
                 </span>
               </div>
             </div>
           ))
         )}
-        {typing && (
-          <p className="text-sm text-gray-500 italic">Patient is typing...</p>
-        )}
+        {typing && <p className="text-sm text-gray-500 italic">Patient is typing...</p>}
         <div ref={messagesEndRef} />
       </div>
 
