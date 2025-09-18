@@ -1,7 +1,6 @@
 import express from "express";
 import Reminder from "../models/reminderModel.js";
 import { authUser } from "../middlewares/authUser.js";
-// this is your middleware
 
 const router = express.Router();
 
@@ -15,7 +14,7 @@ router.post("/add", authUser, async (req, res) => {
     }
 
     const newReminder = new Reminder({
-      userId: req.user.id,   // ✅ Now works
+      userId: req.user.id,
       medicineName,
       times,
       toEmail,
@@ -23,18 +22,17 @@ router.post("/add", authUser, async (req, res) => {
     });
 
     await newReminder.save();
-    res.json({ message: "Reminder added successfully" });
+    res.json({ message: "Reminder added successfully", reminder: newReminder });
   } catch (err) {
     console.error("❌ Error adding reminder:", err.message);
     res.status(500).json({ message: "Server error" });
   }
 });
 
-
-// List reminders
+// List reminders (sorted by newest first)
 router.get("/list", authUser, async (req, res) => {
   try {
-    const reminders = await Reminder.find({ userId: req.user.id });
+    const reminders = await Reminder.find({ userId: req.user.id }).sort({ createdAt: -1 });
     res.json(reminders);
   } catch (err) {
     console.error("❌ Error fetching reminders:", err.message);

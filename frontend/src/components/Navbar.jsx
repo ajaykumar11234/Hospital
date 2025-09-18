@@ -26,7 +26,6 @@ const Navbar = () => {
     setShowProfileMenu(false);
   };
 
-  // ✅ Close menus if clicked outside
   useEffect(() => {
     const handleClickOutside = (e) => {
       if (
@@ -40,13 +39,24 @@ const Navbar = () => {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  // ✅ Helper for active NavLink styling
   const linkClass = ({ isActive }) =>
     isActive ? "text-primary font-semibold" : "hover:text-primary";
 
+  const navLinks = [
+    { to: '/', label: 'Home' },
+    { to: '/check-disease', label: 'Check-Disease' },
+    { to: '/chatbot', label: 'Chat-Bot' },
+    { to: '/reminder', label: 'Reminder' },
+    { to: '/doctors', label: 'All Doctors' },
+    { to: '/live-chat', label: 'Live Chat' },
+    { to: '/about', label: 'About' },
+    { to: '/contact', label: 'Contact' },
+    { to: '/buy-medicine', label: 'Buy Medicine' },
+  ];
+
   return (
-    <div className="relative border-b border-gray-300 px-4 sm:px-[8%] py-4">
-      <div className='flex items-center justify-between text-sm'>
+    <nav className="relative border-b border-gray-300 px-4 sm:px-[8%] py-4 bg-white">
+      <div className='flex items-center justify-between'>
         {/* Logo */}
         <img
           onClick={() => { navigate("/"); closeMenus(); }}
@@ -56,36 +66,21 @@ const Navbar = () => {
         />
 
         {/* Desktop Menu */}
-        <ul className='hidden md:flex items-start gap-6 font-medium text-gray-700'>
-          <NavLink to='/' className={linkClass} onClick={closeMenus}>Home</NavLink>
-          <NavLink to='/check-disease' className={linkClass} onClick={closeMenus}>Check-Disease</NavLink>
-          {/* <NavLink to='/chat/:' className={linkClass} onClick={closeMenus}>Chat-With-Doctor</NavLink> */}
-          <NavLink to='/chatbot' className={linkClass} onClick={closeMenus}>Chat-Bot</NavLink>
-          <NavLink to='/reminder' className={linkClass} onClick={closeMenus}>Reminder</NavLink>
-          <NavLink to='/live-chat' className={linkClass} onClick={closeMenus}>Live Chat</NavLink>
-          
-          <NavLink to='/doctors' className={linkClass} onClick={closeMenus}>All Doctors</NavLink>
-          <NavLink to='/about' className={linkClass} onClick={closeMenus}>About</NavLink>
-          <NavLink to='/contact' className={linkClass} onClick={closeMenus}>Contact</NavLink>
-          <NavLink to='/buy-medicine' className={linkClass} onClick={closeMenus}>Buy Medicine</NavLink>
-          {/* <Link to="/buy-medicine">Buy Medicine</Link>  */}
-          <a href="https://virtual-health-assistant-admin.onrender.com/" className={linkClass} onClick={closeMenus}>
-  Admin
-</a>
-          
-
-          
+        <ul className='hidden md:flex items-center gap-6 font-medium text-gray-700'>
+          {navLinks.map(link => (
+            <NavLink key={link.to} to={link.to} className={linkClass} onClick={closeMenus}>
+              {link.label}
+            </NavLink>
+          ))}
         </ul>
 
         {/* Right Side */}
         <div className='flex items-center gap-4 relative'>
-        
           {token ? (
             <div className='relative' ref={profileRef}>
               <button
                 className='flex items-center gap-2 cursor-pointer'
                 onClick={toggleProfileMenu}
-                aria-label="Profile Menu"
               >
                 <img
                   className='w-8 h-8 rounded-full object-cover'
@@ -96,12 +91,11 @@ const Navbar = () => {
               </button>
 
               {showProfileMenu && (
-                <div className='absolute top-12 right-0 bg-stone-100 rounded shadow-md p-4 z-30 min-w-[160px]'>
+                <div className='absolute top-12 right-0 bg-white rounded shadow-md p-4 z-30 min-w-[160px]'>
                   <p onClick={() => { navigate('/my-profile'); closeMenus(); }} className='hover:text-black cursor-pointer mb-2'>My Profile</p>
                   <p onClick={() => { navigate('/my-appointments'); closeMenus(); }} className='hover:text-black cursor-pointer mb-2'>My Appointments</p>
                   <p onClick={() => { navigate('/my-orders'); closeMenus(); }} className='hover:text-black cursor-pointer mb-2'>My Orders</p>
                   <p onClick={logout} className='hover:text-black cursor-pointer'>Logout</p>
-                  {/* <a href="https://hospital-9qs4.onrender.com/" className={linkClass} onClick={closeMenus}>Doctor Login</a> */}
                 </div>
               )}
             </div>
@@ -126,31 +120,39 @@ const Navbar = () => {
       </div>
 
       {/* Mobile Menu Dropdown */}
-      {showMenu && (
-        <div
-          ref={menuRef}
-          className="md:hidden absolute top-[100%] left-0 w-full bg-white border-t border-gray-200 z-40 px-6 py-4 space-y-4 shadow-lg"
-        >
-          <NavLink to='/' className={linkClass} onClick={closeMenus}>Home</NavLink>
-          <NavLink to='/check-disease' className={linkClass} onClick={closeMenus}>Check-Disease</NavLink>
-          <NavLink to='/chatbot' className={linkClass} onClick={closeMenus}>Chat-Bot</NavLink>
-          <NavLink to='/reminder' className={linkClass} onClick={closeMenus}>Reminder</NavLink>
-          <NavLink to='/doctors' className={linkClass} onClick={closeMenus}>All Doctors</NavLink>
-          <NavLink to='/about' className={linkClass} onClick={closeMenus}>About</NavLink>
-          <NavLink to='/contact' className={linkClass} onClick={closeMenus}>Contact</NavLink>
-          <NavLink to='/buy-medicine' className={linkClass} onClick={closeMenus}>Buy Medicine</NavLink>
-
-          {!token && (
-            <button
-              onClick={() => { navigate('/login'); closeMenus(); }}
-              className='w-full bg-primary text-white px-4 py-2 rounded-full mt-2'
-            >
-              Login
-            </button>
-          )}
-        </div>
+      {/* Mobile Menu Dropdown */}
+{showMenu && (
+  <div
+    ref={menuRef}
+    className="md:hidden absolute top-full right-0 w-56 bg-white border border-gray-200 z-40 px-4 py-4 shadow-lg rounded-md"
+  >
+    <ul className="flex flex-col gap-4">
+      {navLinks.map(link => (
+        <li key={link.to}>
+          <NavLink
+            to={link.to}
+            className={({ isActive }) => isActive ? "text-primary font-semibold block" : "hover:text-primary block"}
+            onClick={closeMenus}
+          >
+            {link.label}
+          </NavLink>
+        </li>
+      ))}
+      {!token && (
+        <li>
+          <button
+            onClick={() => { navigate('/login'); closeMenus(); }}
+            className='w-full bg-primary text-white px-4 py-2 rounded-full mt-2'
+          >
+            Login
+          </button>
+        </li>
       )}
-    </div>
+    </ul>
+  </div>
+)}
+
+    </nav>
   );
 };
 

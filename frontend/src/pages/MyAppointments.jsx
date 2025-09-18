@@ -10,20 +10,19 @@ const MyAppointments = () => {
   const { backendUrl, token, getDoctorsData } = useContext(AppContext);
   const [appointments, setAppointments] = useState([]);
 
+  // Fetch user appointments
   const getUserAppointments = async () => {
     try {
       const { data } = await axios.get(`${backendUrl}/api/user/appointments`, {
         headers: { token },
       });
-
-      if (data.success) {
-        setAppointments(data.data.reverse());
-      }
+      if (data.success) setAppointments(data.data.reverse());
     } catch (error) {
-      toast.error(error.message);
+      toast.error(error.response?.data?.message || error.message);
     }
   };
 
+  // Cancel appointment
   const cancelAppointment = async (appointmentId) => {
     try {
       const { data } = await axios.post(
@@ -31,32 +30,32 @@ const MyAppointments = () => {
         { appointmentId },
         { headers: { token } }
       );
-
       if (data.success) {
-        toast.success(data.message);
+        toast.success(data.message || "Appointment Cancelled Successfully.");
         getUserAppointments();
         getDoctorsData();
       } else {
         toast.error(data.message);
       }
     } catch (error) {
-      toast.error(error.message);
+      toast.error(error.response?.data?.message || error.message);
     }
   };
 
+  // Razorpay payment
   const initPay = (order) => {
     const options = {
       key: import.meta.env.VITE_RAZORPAY_KEY_ID,
       amount: order.amount,
       currency: order.currency,
-      name: "Appointment payment",
+      name: "Appointment Payment",
       description: "Appointment payment",
       order_id: order.id,
       receipt: order.receipt,
       handler: async (response) => {
         try {
           const { data } = await axios.post(
-            backendUrl + "/api/user/verifyRazorpay",
+            `${backendUrl}/api/user/verifyRazorpay`,
             response,
             { headers: { token } }
           );
@@ -65,35 +64,28 @@ const MyAppointments = () => {
             navigate("/my-appointments");
           }
         } catch (error) {
-          toast.error(error.message);
+          toast.error(error.response?.data?.message || error.message);
         }
       },
     };
-
-    const rzp = new window.Razorpay(options);
-    rzp.open();
+    new window.Razorpay(options).open();
   };
 
   const appointmentRazorpay = async (appointmentId) => {
     try {
       const { data } = await axios.post(
-        backendUrl + "/api/user/payment-razorpay",
+        `${backendUrl}/api/user/payment-razorpay`,
         { appointmentId },
         { headers: { token } }
       );
-
-      if (data.success) {
-        initPay(data.order);
-      }
+      if (data.success) initPay(data.order);
     } catch (error) {
-      console.log(error);
+      toast.error(error.response?.data?.message || error.message);
     }
   };
 
   useEffect(() => {
-    if (token) {
-      getUserAppointments();
-    }
+    if (token) getUserAppointments();
   }, [token]);
 
   return (
@@ -102,90 +94,90 @@ const MyAppointments = () => {
         My Appointments
       </h2>
 
-      <div className="space-y-8">
-        {appointments.length === 0 && (
-          <p className="text-center text-gray-500">No appointments found.</p>
-        )}
+      {appointments.length === 0 ? (
+        <p className="text-center text-gray-500">No appointments found.</p>
+      ) : (
+        <div className="space-y-8">
+          {appointments.map((item) => {
+            const appointmentDateTime = item.slotDateTime
+              ? new Date(item.slotDateTime)
+              : item.slotDate && item.slotTime
+              ? new Date(`${item.slotDate}T${item.slotTime}`)
+              : null;
 
-        {appointments.map((item, index) => (
-          <div
-            key={index}
-            className="flex flex-col md:flex-row bg-white rounded-xl shadow-lg hover:shadow-xl transition-shadow duration-300 p-6 gap-6"
-          >
-            {/* Doctor Image */}
-            <div className="w-full md:w-1/4 flex justify-center md:justify-start">
-              <img
-                src={item.docData.image}
-                alt={item.docData.name}
-                className="w-32 h-32 rounded-lg object-cover border shadow-sm"
-              />
-            </div>
+            const formattedDateTime = appointmentDateTime
+              ? appointmentDateTime.toLocaleString("en-IN", {
+                  day: "numeric",
+                  month: "short",
+                  year: "numeric",
+                  hour: "numeric",
+                  minute: "numeric",
+                  hour12: true,
+                })
+              : "N/A";
 
-            {/* Doctor Info */}
-            <div className="flex-1 space-y-1">
-              <p className="text-xl font-semibold text-gray-900">
-                {item.docData.name}
-              </p>
-              <p className="text-sm text-gray-500 italic">
-                {item.docData.speciality}
-              </p>
-              <p className="text-sm mt-3 text-gray-700">
-                <span className="font-semibold">Date & Time:</span>{" "}
-                <span className="text-blue-600">
-                  {item.slotDate
-                    ? new Date(item.slotDate).toLocaleString("en-IN", {
-                        day: "numeric",
-                        month: "short",
-                        year: "numeric",
-                        hour: "numeric",
-                        minute: "numeric",
-                        hour12: true,
-                      })
-                    : "N/A"}
-                </span>
-              </p>
-            </div>
+            return (
+              <div
+                key={item._id}
+                className="flex flex-col md:flex-row bg-white rounded-xl shadow-lg hover:shadow-xl transition-shadow duration-300 p-6 gap-6"
+              >
+                {/* Doctor Image */}
+                <div className="w-full md:w-1/4 flex justify-center md:justify-start">
+                  <img
+                    src={item.docData.image}
+                    alt={item.docData.name}
+                    className="w-32 h-32 rounded-lg object-cover border shadow-sm"
+                  />
+                </div>
 
-            {/* Buttons */}
-            <div className="flex flex-col justify-center gap-3 md:w-1/4">
-              {!item.cancelled && item.payment && !item.isCompleted && (
-                <>
-                  <button
-                    className="w-full px-4 py-2 bg-green-600 text-white rounded-full"
-                    disabled
-                  >
-                    Paid
-                  </button>
-                  <button
-                    onClick={() => navigate(`/chat/${item._id}`)} // 👈 Navigate to chat page
-                    className="w-full px-4 py-2 bg-blue-600 text-white rounded-full hover:bg-blue-700 transition duration-200"
-                  >
-                    Chat with Doctor
-                  </button>
-                </>
-              )}
+                {/* Doctor Info */}
+                <div className="flex-1 space-y-1">
+                  <p className="text-xl font-semibold text-gray-900">{item.docData.name}</p>
+                  <p className="text-sm text-gray-500 italic">{item.docData.speciality}</p>
+                  <p className="text-sm mt-3 text-gray-700">
+                    <span className="font-semibold">Date & Time:</span>{" "}
+                    <span className="text-blue-600">{formattedDateTime}</span>
+                  </p>
+                </div>
 
-              {!item.cancelled && !item.payment && !item.isCompleted && (
-                <button
-                  onClick={() => appointmentRazorpay(item._id)}
-                  className="w-full px-4 py-2 bg-green-600 text-white rounded-full hover:bg-green-700 transition duration-200"
-                >
-                  Pay Online
-                </button>
-              )}
+                {/* Action Buttons */}
+                <div className="flex flex-col justify-center gap-3 md:w-1/4">
+                  {!item.cancelled && item.payment && !item.isCompleted && (
+                    <>
+                      <button className="w-full px-4 py-2 bg-green-600 text-white rounded-full" disabled>
+                        Paid
+                      </button>
+                      <button
+                        onClick={() => navigate(`/chat/${item._id}`)}
+                        className="w-full px-4 py-2 bg-blue-600 text-white rounded-full hover:bg-blue-700 transition duration-200"
+                      >
+                        Chat with Doctor
+                      </button>
+                    </>
+                  )}
 
-              {!item.cancelled && !item.payment && !item.isCompleted && (
-                <button
-                  onClick={() => cancelAppointment(item._id)}
-                  className="w-full px-4 py-2 bg-red-500 text-white rounded-full hover:bg-red-600 transition duration-200"
-                >
-                  Cancel Appointment
-                </button>
-              )}
-            </div>
-          </div>
-        ))}
-      </div>
+                  {!item.cancelled && !item.payment && !item.isCompleted && (
+                    <>
+                      <button
+                        onClick={() => appointmentRazorpay(item._id)}
+                        className="w-full px-4 py-2 bg-green-600 text-white rounded-full hover:bg-green-700 transition duration-200"
+                      >
+                        Pay Online
+                      </button>
+                      <button
+                        onClick={() => cancelAppointment(item._id)}
+                        className="w-full px-4 py-2 bg-red-500 text-white rounded-full hover:bg-red-600 transition duration-200"
+                      >
+                        Cancel Appointment
+                      </button>
+                    </>
+                  )}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
     </div>
   );
 };

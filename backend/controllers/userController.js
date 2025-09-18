@@ -129,67 +129,85 @@ const updateProfile = async (req, res) => {
 };
 
 // ------------------------ BOOK APPOINTMENT ------------------------
-//------------------------ BOOK APPOINTMENT ------------------------
+
 const bookAppointment = async (req, res) => {
   try {
-    const userId = req.user.id; 
-    const { docId, slotDate, slotTime } = req.body;
-    if (!userId || !docId || !slotDate || !slotTime) 
-      return res.status(400).json({ success: false, message: "Required fields are missing" });
+    const userId = req.user.id;
+    const { docId, slotDate, slotTime, slotDateTime } = req.body;
+
+    if (!userId || !docId || !slotDate || !slotTime || !slotDateTime)
+      return res.status(400).json({ success: false, message: "Required fields missing" });
+
+    const slotDateObj = new Date(slotDateTime);
+    if (isNaN(slotDateObj.getTime()))
+      return res.status(400).json({ success: false, message: "Invalid slot date/time" });
 
     const docData = await doctorModel.findById(docId).select("-password");
     if (!docData) return res.status(404).json({ success: false, message: "Doctor not found" });
-    if (!docData.available) return res.status(400).json({ success: false, message: "Doctor Not Available" });
+    if (!docData.available) return res.status(400).json({ success: false, message: "Doctor not available" });
 
     let slots_booked = docData.slots_booked || {};
-    if (slots_booked[slotDate]) {
-      if (slots_booked[slotDate].includes(slotTime)) {
-        return res.status(400).json({ success: false, message: "Slot not Available" });
-      }
-      slots_booked[slotDate].push(slotTime);
-    } else {
-      slots_booked[slotDate] = [slotTime];
-    }
+    if (slots_booked[slotDate]?.includes(slotTime))
+      return res.status(400).json({ success: false, message: "Slot not available" });
+
+    // Add slot
+    if (slots_booked[slotDate]) slots_booked[slotDate].push(slotTime);
+    else slots_booked[slotDate] = [slotTime];
 
     const userData = await userModel.findById(userId).select("-password");
-    const docDataForAppointment = { ...docData.toObject() };
-    delete docDataForAppointment.slots_booked;
 
-    const appointmentData = { 
-      userId, 
-      docId, 
-      userData, 
-      docData: docDataForAppointment, 
-      amount: docData.fees, 
-      slotTime, 
-      slotDate, 
-      date: new Date() 
+    const appointmentData = {
+      userId,
+      docId,
+      slotDate,
+      slotTime,
+      slotDateTime: slotDateObj,
+      userData: {
+        name: userData.name,
+        email: userData.email,
+        phone: userData.phone || "",
+      },
+      docData: {
+        name: docData.name,
+        speciality: docData.speciality,
+        fees: docData.fees,
+        image: docData.image, // ✅ Include doctor image
+        degree: docData.degree || "",
+      },
+      amount: docData.fees,
+      payment: false,
+      cancelled: false,
+      isCompleted: false,
     };
+
     const newAppointment = new appointmentModel(appointmentData);
     await newAppointment.save();
-
     await doctorModel.findByIdAndUpdate(docId, { slots_booked });
 
-    // ---------------- EMAIL SEND ----------------
-    const subject = "Appointment Confirmation";
-    const html = `
-      <h2>Appointment Confirmed ✅</h2>
-      <p>Dear <strong>${userData.name}</strong>,</p>
-      <p>You have successfully booked an appointment with 
-      <strong>Dr. ${docData.name}</strong> on 
-      <strong>${slotDate}</strong> at <strong>${slotTime}</strong>.</p>
-      <p>Appointment ID: ${newAppointment._id}</p>
-      <p>Thank you for using our Virtual Health Assistant!</p>
-    `;
-    await sendEmail(userData.email, subject, html);
+    // Send email
+    await sendEmail(
+  userData.email,
+  "Appointment Confirmed ✅",
+  `
+    <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
+      <h2 style="color: #4CAF50;">Appointment Confirmed</h2>
+      <p>Hello <strong>${userData.name}</strong>,</p>
+      <p>Your appointment with <strong>${docData.name}</strong> on 
+      <strong>${slotDate}</strong> at <strong>${slotTime}</strong> is confirmed.</p>
+      <p><strong>Appointment ID:</strong> ${newAppointment._id}</p>
+      <br/>
+      <p style="font-size: 0.9em; color: #555;">Thank you for choosing our Virtual Health Assistant!.</p>
+    </div>
+  `
+);
 
-    res.json({ success: true, message: "Appointment Booked", appointment: newAppointment });
+    res.json({ success: true, message: "Appointment booked successfully!", appointment: newAppointment });
   } catch (error) {
     console.error(error);
-    res.status(500).json({ success: false, message: "Server error" });
+    res.status(500).json({ success: false, message: error.message });
   }
 };
-// ------------------------ LIST APPOINTMENTS ------------------------
+// // ------------------------ LIST APPOINTMENTS ------------------------
 const listAppointment = async (req, res) => {
   try {
     const userId = req.user.id; 

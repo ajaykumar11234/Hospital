@@ -12,6 +12,7 @@
   "dependencies": {
     "@jitsi/react-sdk": "^1.4.4",
     "axios": "^1.9.0",
+    "dayjs": "^1.11.18",
     "framer-motion": "^12.23.12",
     "lucide-react": "^0.542.0",
     "react": "^19.1.0",

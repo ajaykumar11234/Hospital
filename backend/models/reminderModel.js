@@ -7,9 +7,10 @@ const reminderSchema = new mongoose.Schema({
     required: true,
   },
   medicineName: { type: String, required: true },
-  times: [{ type: String, required: true }], // now it's an array of strings
+  times: [{ type: String, required: true }], // array of strings
   toEmail: { type: String, required: true },
   durationDays: { type: Number, required: true },
+  createdAt: { type: Date, default: Date.now } // <-- Added createdAt
 });
 
 const Reminder = mongoose.model("Reminder", reminderSchema);

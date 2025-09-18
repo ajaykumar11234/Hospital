@@ -75,52 +75,62 @@ navigate('/')
         </p>
 
         <form onSubmit={onSubmitHandler} className="space-y-4">
-          {state === 'Sign Up' && (
-            <div>
-              <label className="block text-sm font-medium text-gray-700">Name</label>
-              <input
-                type="text"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                className="mt-1 w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                placeholder="Enter your name"
-                required
-              />
-            </div>
-          )}
+  {state === 'Sign Up' && (
+    <div>
+      <label className="block text-sm font-medium text-gray-700">Name</label>
+      <input
+        type="text"
+        value={name}
+        onChange={(e) => setName(e.target.value)}
+        className="mt-1 w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+        placeholder="Enter your name"
+        required
+      />
+    </div>
+  )}
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700">Email</label>
-            <input
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="mt-1 w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-              placeholder="Enter your email"
-              required
-            />
-          </div>
+  <div>
+    <label className="block text-sm font-medium text-gray-700">Email</label>
+    <input
+      type="email"
+      value={email}
+      onChange={(e) => setEmail(e.target.value)}
+      className="mt-1 w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+      placeholder="Enter your email"
+      required
+    />
+  </div>
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700">Password</label>
-            <input
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="mt-1 w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-              placeholder="Enter your password"
-              required
-              minLength="6"
-            />
-          </div>
+  <div>
+    <label className="block text-sm font-medium text-gray-700">Password</label>
+    <input
+      type="password"
+      value={password}
+      onChange={(e) => setPassword(e.target.value)}
+      className="mt-1 w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+      placeholder="Enter your password"
+      required
+      minLength="6"
+    />
+  </div>
 
-          <button
-            type="submit"
-            className="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 rounded-md transition duration-200"
-          >
-            {state === 'Login' ? 'Login' : 'Sign Up'}
-          </button>
-        </form>
+  <button
+    type="submit"
+    className="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 rounded-md transition duration-200"
+  >
+    {state === 'Login' ? 'Login' : 'Sign Up'}
+  </button>
+
+  {/* Admin/Doctor login links */}
+  {state === 'Login' && (
+    <div className="mt-4 text-center space-x-4">
+      <span className="text-sm text-gray-600">Login as:</span>
+      <Link to="https://virtual-health-assistant-admin.onrender.com/" className="text-blue-600 hover:underline text-sm">Admin/Doctor</Link>
+      {/* <Link to="/doctor-login" className="text-blue-600 hover:underline text-sm">Doctor</Link> */}
+    </div>
+  )}
+</form>
+
 
         <p className="mt-4 text-sm text-center text-gray-600">
           {state === 'Login' 
