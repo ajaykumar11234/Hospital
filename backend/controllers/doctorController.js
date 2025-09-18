@@ -232,7 +232,27 @@ const updateDoctorProfile = async (req, res) => {
   }
 };
 
+
+// controllers/doctorController.js
+const getActivePatients = async (req, res) => {
+  try {
+    const doctorId = req.doctor._id; // ✅ comes from authDoctor middleware
+
+    const activeAppointments = await appointmentModel.find({
+      docId: doctorId,
+      cancelled: false,
+      isCompleted: false,
+    }).sort({ slotDateTime: 1 });
+
+    res.json({ success: true, patients: activeAppointments });
+  } catch (error) {
+    console.error("Get Active Patients Error:", error);
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+
 export { changeAvailability, doctorList,loginDoctor, appointmentsDoctor,appointmentCancel,appointmentComplete,doctorDashboard,
 doctorProfile,
-updateDoctorProfile
+updateDoctorProfile,getActivePatients
 };

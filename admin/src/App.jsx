@@ -26,6 +26,7 @@ import DoctorProfile from './pages/Doctor/DoctorProfile';
 import DoctorChatRoom from './pages/Doctor/DoctorChatRoom';
 import MedicineList from './pages/Admin/MedicineList.jsx';
 import AdminOrders from './pages/Admin/AdminOrders.jsx';
+import ActivePatients from './pages/Doctor/ActivePatients.jsx';
 
 
 const App = () => {
@@ -64,6 +65,7 @@ const App = () => {
                     <Route path="/doctor-dashboard" element={<DoctorDashboard />} />
                     <Route path="/doctor-appointments" element={<DoctorAppointment />} />
                     <Route path="/doctor-profile" element={<DoctorProfile />} />
+                    <Route path="/active-patients" element={<ActivePatients/>}/>
                     <Route path="/doctor/chat/:appointmentId" element={<DoctorChatRoom />} />
                     <Route path="/video/:appointmentId" element={<VideoCall />} />
                   </>

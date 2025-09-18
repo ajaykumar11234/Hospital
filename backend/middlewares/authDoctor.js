@@ -1,5 +1,3 @@
-
-
 import jwt from 'jsonwebtoken';
 import 'dotenv/config';
 
@@ -16,8 +14,11 @@ const authDoctor = async (req, res, next) => {
     }
 
     const decoded = jwt.verify(dtoken, process.env.JWT_SECRET);
+
+    // Attach doctor info to req
+    req.doctor = { _id: decoded.id }; // ✅ accessible in controllers as req.doctor._id
     req.body = req.body || {};
-    req.body.docId = decoded.id;
+    req.body.docId = decoded.id; // still available for other endpoints
 
     next();
   } catch (error) {
@@ -29,4 +30,4 @@ const authDoctor = async (req, res, next) => {
   }
 };
 
-export { authDoctor};
+export { authDoctor };

@@ -70,7 +70,7 @@ const AdminContextProvider = ({ children }) => {
       const { data } = await axios.get(`${backendUrl}/api/admin/appointments`, {
         headers: { atoken: aToken },
       });
-      if (data.success) setAppointments(data.appointments);
+      if (data.success) setAppointments(data.appointments.reverse());
       else toast.error(data.message);
     } catch (error) {
       handleError(error);
@@ -87,6 +87,9 @@ const AdminContextProvider = ({ children }) => {
       if (data.success) {
         toast.success('Appointment cancelled');
         await getdashData(); // Refresh dashboard
+        await getAllAppointments();
+      
+
       } else toast.error(data.message || 'Failed to cancel appointment');
     } catch (error) {
       handleError(error);

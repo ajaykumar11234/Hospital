@@ -82,6 +82,12 @@ const Sidebar = () => {
             </NavLink>
           </li>
           <li>
+            <NavLink to="/active-patients" className={linkClasses}>
+              <img src={assets.people_icon} alt="Profile" className="h-6 w-6" />
+              <p>Patient Chat</p>
+            </NavLink>
+          </li>
+          <li>
             <NavLink to="/doctor-profile" className={linkClasses}>
               <img src={assets.people_icon} alt="Profile" className="h-6 w-6" />
               <p>Profile</p>

@@ -156,29 +156,31 @@ const bookAppointment = async (req, res) => {
 
     const userData = await userModel.findById(userId).select("-password");
 
-    const appointmentData = {
-      userId,
-      docId,
-      slotDate,
-      slotTime,
-      slotDateTime: slotDateObj,
-      userData: {
-        name: userData.name,
-        email: userData.email,
-        phone: userData.phone || "",
-      },
-      docData: {
-        name: docData.name,
-        speciality: docData.speciality,
-        fees: docData.fees,
-        image: docData.image, // ✅ Include doctor image
-        degree: docData.degree || "",
-      },
-      amount: docData.fees,
-      payment: false,
-      cancelled: false,
-      isCompleted: false,
-    };
+const appointmentData = {
+  userId,
+  docId,
+  slotDate,
+  slotTime,
+  slotDateTime: slotDateObj,
+  userData: {
+    name: userData.name,
+    email: userData.email,
+    phone: userData.phone || "",
+    image: userData.image || "/default-user.png",  // ✅ patient image
+  },
+  docData: {
+    name: docData.name,
+    speciality: docData.speciality,
+    fees: docData.fees,
+    image: docData.image, // ✅ doctor image
+    degree: docData.degree || "",
+  },
+  amount: docData.fees,
+  payment: false,
+  cancelled: false,
+  isCompleted: false,
+};
+
 
     const newAppointment = new appointmentModel(appointmentData);
     await newAppointment.save();
@@ -187,10 +189,10 @@ const bookAppointment = async (req, res) => {
     // Send email
     await sendEmail(
   userData.email,
-  "Appointment Confirmed ✅",
+  "Appointment Confirmed - AJ Hospitals",
   `
     <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
-      <h2 style="color: #4CAF50;">Appointment Confirmed</h2>
+      <h2>Appointment Confirmed - AJ Hospitals</h2>
       <p>Hello <strong>${userData.name}</strong>,</p>
       <p>Your appointment with <strong>${docData.name}</strong> on 
       <strong>${slotDate}</strong> at <strong>${slotTime}</strong> is confirmed.</p>
