@@ -39,7 +39,6 @@ function BuyMedicine() {
     if (token) fetchMedicines();
   }, [backendUrl, token]);
 
-  // Add to cart
   const addToCart = (product) => {
     if (product.stock === 0) {
       toast.error("Out of Stock!");
@@ -55,12 +54,10 @@ function BuyMedicine() {
     });
   };
 
-  // Remove from cart
   const removeFromCart = (id) => setCart((prev) => prev.filter((item) => item._id !== id));
 
   const totalPrice = cart.reduce((acc, item) => acc + item.price * item.qty, 0);
 
-  // Razorpay payment initialization
   const initPay = (razorpayOrder) => {
     if (!window.Razorpay) {
       toast.error("Razorpay SDK not loaded");
@@ -69,7 +66,7 @@ function BuyMedicine() {
 
     const options = {
       key: import.meta.env.VITE_RAZORPAY_KEY_ID,
-      amount: razorpayOrder.amount, // in paise
+      amount: razorpayOrder.amount,
       currency: razorpayOrder.currency,
       name: "Medicine Shop",
       description: "Medicine purchase",
@@ -85,8 +82,8 @@ function BuyMedicine() {
 
           if (data.success) {
             toast.success("Payment successful & order placed!");
-            setCart([]); // clear cart
-            navigate("/buy-medicine"); // redirect after success
+            setCart([]);
+            navigate("/buy-medicine");
           }
         } catch (error) {
           console.error(error);
@@ -105,7 +102,6 @@ function BuyMedicine() {
     rzp.open();
   };
 
-  // Checkout handler
   const handleCheckout = async () => {
     if (cart.length === 0) {
       toast.error("Cart is empty!");
@@ -134,14 +130,15 @@ function BuyMedicine() {
   if (loading) return <p className="text-center mt-4">Loading medicines...</p>;
 
   return (
-    <div className="max-w-5xl mx-auto p-6 font-sans">
+    <div className="max-w-6xl mx-auto px-4 py-6 font-sans">
       <h2 className="text-2xl font-semibold mb-6 text-center">Buy Medicine</h2>
 
-      <div className="grid md:grid-cols-3 gap-6">
+      {/* Products Grid */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
         {products.map((product) => (
           <div
             key={product._id}
-            className="border rounded-lg p-4 flex flex-col items-center shadow-sm bg-white"
+            className="border rounded-lg p-4 flex flex-col items-center shadow-sm bg-white hover:shadow-md transition-shadow"
           >
             <img
               src={product.imageUrl || "https://via.placeholder.com/100x100.png?text=No+Image"}
@@ -161,14 +158,14 @@ function BuyMedicine() {
             {product.stock > 0 ? (
               <button
                 onClick={() => addToCart(product)}
-                className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+                className="w-full bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition"
               >
                 Add to Cart
               </button>
             ) : (
               <button
                 disabled
-                className="bg-gray-400 text-white px-4 py-2 rounded cursor-not-allowed"
+                className="w-full bg-gray-400 text-white px-4 py-2 rounded cursor-not-allowed"
               >
                 Out of Stock
               </button>
@@ -177,6 +174,7 @@ function BuyMedicine() {
         ))}
       </div>
 
+      {/* Cart Section */}
       <div className="mt-10 border-t pt-6">
         <h3 className="text-xl font-semibold mb-4">Cart</h3>
         {cart.length === 0 ? (
@@ -184,14 +182,19 @@ function BuyMedicine() {
         ) : (
           <div className="space-y-4">
             {cart.map((item) => (
-              <div key={item._id} className="flex justify-between items-center border-b pb-2">
+              <div
+                key={item._id}
+                className="flex flex-col sm:flex-row justify-between items-start sm:items-center border-b pb-2"
+              >
                 <div>
                   <p className="font-semibold">{item.name}</p>
-                  <p>₹{item.price} × {item.qty}</p>
+                  <p>
+                    ₹{item.price} × {item.qty}
+                  </p>
                 </div>
                 <button
                   onClick={() => removeFromCart(item._id)}
-                  className="bg-red-500 text-white px-2 py-1 rounded hover:bg-red-600"
+                  className="mt-2 sm:mt-0 bg-red-500 text-white px-2 py-1 rounded hover:bg-red-600"
                 >
                   Remove
                 </button>
@@ -200,7 +203,7 @@ function BuyMedicine() {
             <p className="text-right font-semibold text-lg">Total: ₹{totalPrice}</p>
             <button
               onClick={handleCheckout}
-              className="bg-green-600 text-white px-6 py-2 rounded hover:bg-green-700"
+              className="w-full sm:w-auto bg-green-600 text-white px-6 py-2 rounded hover:bg-green-700"
             >
               Order
             </button>

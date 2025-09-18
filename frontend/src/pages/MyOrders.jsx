@@ -25,7 +25,7 @@ function MyOrders() {
     };
 
     if (token) fetchOrders();
-  }, [backendUrl, token]);
+  }, [backendUrl, token,orders]);
 
   if (loading) return <p className="text-center mt-4">Loading your orders...</p>;
 

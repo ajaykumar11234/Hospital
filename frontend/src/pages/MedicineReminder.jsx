@@ -24,7 +24,7 @@ function MedicineReminder() {
       return;
     }
     fetchReminders();
-  }, []);
+  }, [token]);
 
   const fetchReminders = async () => {
     try {
