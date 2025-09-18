@@ -1,7 +1,8 @@
 import React, { useEffect, useRef, useState } from "react";
 import io from "socket.io-client";
 
-const socket = io("https://virtual-health-assistant-backend.onrender.com"); // ✅ local backend
+const backendUrl = import.meta.env.VITE_BACKEND_URL;
+const socket = io('$backendUrl'); // ✅ local backend
 
 const Chat = ({ username, appointmentId }) => {
   const [message, setMessage] = useState("");

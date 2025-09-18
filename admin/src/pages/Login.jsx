@@ -6,12 +6,12 @@ import { toast } from 'react-toastify';
 import { useNavigate } from 'react-router-dom';
 
 const Login = () => {
-  const [state, setState] = useState('Admin');
+  const [state, setState] = useState('Admin'); // Admin | Doctor | User
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
 
   const { setAToken, backendUrl } = useContext(AdminContext);
-  const { setDToken, backendurl } = useContext(DoctorContext);
+  const { setDToken } = useContext(DoctorContext);
 
   const navigate = useNavigate();
 
@@ -21,26 +21,27 @@ const Login = () => {
     try {
       if (state === 'Admin') {
         const { data } = await axios.post(`${backendUrl}/api/admin/login`, { email, password });
-
         if (data.success) {
           localStorage.setItem('aToken', data.atoken);
           setAToken(data.atoken);
-          toast.success('Login successful!');
+          toast.success('Admin login successful!');
           navigate('/admin-dashboard');
-        } else {
-          toast.error(data.message || 'Login failed');
-        }
-      } else {
+        } else toast.error(data.message || 'Login failed');
+      } else if (state === 'Doctor') {
         const { data } = await axios.post(`${backendUrl}/api/doctor/login`, { email, password });
-
         if (data.success) {
           localStorage.setItem('dToken', data.token);
           setDToken(data.token);
-          toast.success('Login successful!');
-          navigate('/doctor-dashboard'); // ✅ Redirect after login
-        } else {
-          toast.error(data.message || 'Login failed');
-        }
+          toast.success('Doctor login successful!');
+          navigate('/doctor-dashboard');
+        } else toast.error(data.message || 'Login failed');
+      } else if (state === 'User') {
+        const { data } = await axios.post(`${backendUrl}/api/user/login`, { email, password });
+        if (data.success) {
+          localStorage.setItem('uToken', data.token);
+          toast.success('User login successful!');
+          navigate('/user-dashboard');
+        } else toast.error(data.message || 'Login failed');
       }
     } catch (err) {
       toast.error(err.response?.data?.message || 'An error occurred during login');
@@ -86,8 +87,24 @@ const Login = () => {
             Login
           </button>
 
+          {/* Toggle between Admin / Doctor / User */}
           <div className="text-center text-sm text-gray-600">
-            {state === 'Admin' ? (
+            {state !== 'Admin' && (
+              <p>
+                Admin Login?{' '}
+                <span
+                  onClick={() => {
+                    setState('Admin');
+                    setEmail('');
+                    setPassword('');
+                  }}
+                  className="text-blue-600 cursor-pointer hover:underline"
+                >
+                  Click here
+                </span>
+              </p>
+            )}
+            {state !== 'Doctor' && (
               <p>
                 Doctor Login?{' '}
                 <span
@@ -101,14 +118,13 @@ const Login = () => {
                   Click here
                 </span>
               </p>
-            ) : (
+            )}
+            {state !== 'User' && (
               <p>
-                Admin Login?{' '}
+                User Login?{' '}
                 <span
                   onClick={() => {
-                    setState('Admin');
-                    setEmail('');
-                    setPassword('');
+                    window.location.replace("https://virtual-health-assistant-app.onrender.com/login");
                   }}
                   className="text-blue-600 cursor-pointer hover:underline"
                 >
