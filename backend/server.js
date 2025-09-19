@@ -16,7 +16,7 @@ import chatRouter from "./routes/chatRoute.js";
 import reminderRouter from "./routes/reminderRoute.js";
 import videoRouter from "./routes/videoRoute.js";
 import ChatMessage from "./models/ChatMessage.js";
-import { startReminderScheduler } from "./utils/reminderScheduler.js";
+import { checkReminders } from "./utils/reminderScheduler.js";
 
 import medicineRouter from "./routes/medicineRoute.js";
 import orderRouter from "./routes/orderRoute.js";
@@ -35,7 +35,7 @@ const port = process.env.PORT || 4000;
 connectDB()
   .then(() => {
     console.log("✅ MongoDB connected");
-    startReminderScheduler(); // 🔄 Reload reminders into cron after DB is ready
+    // startReminderScheduler(); // 🔄 Reload reminders into cron after DB is ready
   })
   .catch((err) => console.error("❌ DB connection error:", err));
 
@@ -77,6 +77,11 @@ app.use("/api/video", videoRouter);
 app.use("/api/medicines", medicineRouter);
 app.use("/api/orders", orderRouter);
 // app.use("/api/orders", orderRouter);
+
+app.get("/api/run-reminder-check", async (req, res) => {
+  await checkReminders();
+  res.send("✅ Reminder check completed");
+});
 
 
 app.get("/", (req, res) => {
