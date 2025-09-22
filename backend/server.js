@@ -1,29 +1,25 @@
 // --------------------- server.js ---------------------
-
 import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
 import { createServer } from "http";
 import { Server } from "socket.io";
 
-// import "./scheduler/reminderScheduler.js";
 import connectDB from "./config/mongodb.js";
 import connectCloudinary from "./config/cloudinary.js";
+
 import adminRouter from "./routes/adminRoute.js";
 import doctorRouter from "./routes/doctorRoute.js";
 import userRouter from "./routes/userRoute.js";
 import chatRouter from "./routes/chatRoute.js";
 import reminderRouter from "./routes/reminderRoute.js";
 import videoRouter from "./routes/videoRoute.js";
-import ChatMessage from "./models/ChatMessage.js";
-import { checkReminders } from "./utils/reminderScheduler.js";
-
 import medicineRouter from "./routes/medicineRoute.js";
 import orderRouter from "./routes/orderRoute.js";
 
-// import { loadReminders } from "./utils/reminderScheduler.js";
-
-// import { loadReminders } from './routes/reminderRoute.js';
+import ChatMessage from "./models/ChatMessage.js";
+import { checkReminders } from "./utils/reminderScheduler.js";
+import { encrypt, decrypt } from "./utils/cryptoUtils.js";
 
 dotenv.config();
 
@@ -31,16 +27,13 @@ const app = express();
 const port = process.env.PORT || 4000;
 
 // ---------- DB + Cloudinary ----------
-// ---------- DB + Cloudinary ----------
 connectDB()
-  .then(() => {
-    console.log("✅ MongoDB connected");
-    // startReminderScheduler(); // 🔄 Reload reminders into cron after DB is ready
-  })
+  .then(() => console.log("✅ MongoDB connected"))
   .catch((err) => console.error("❌ DB connection error:", err));
 
-connectCloudinary().catch((err) => console.error("❌ Cloudinary init error:", err));
-
+connectCloudinary().catch((err) =>
+  console.error("❌ Cloudinary init error:", err)
+);
 
 // ---------- Allowed Origins ----------
 const allowedOrigins = [
@@ -73,17 +66,16 @@ app.use("/api/user", userRouter);
 app.use("/api/chat", chatRouter);
 app.use("/api/reminder", reminderRouter);
 app.use("/api/video", videoRouter);
-
 app.use("/api/medicines", medicineRouter);
 app.use("/api/orders", orderRouter);
-// app.use("/api/orders", orderRouter);
 
+// Test reminder trigger
 app.get("/api/run-reminder-check", async (req, res) => {
   await checkReminders();
   res.send("✅ Reminder check completed");
 });
 
-
+// Root health check
 app.get("/", (req, res) => {
   res.send("API Working Great..");
 });
@@ -103,7 +95,7 @@ const toClientDTO = (doc) => ({
   _id: doc._id,
   appointmentId: doc.appointmentId,
   sender: doc.sender,
-  text: doc.text,
+  text: doc.text ? decrypt(doc.text) : "", // 🔐 decrypt stored ciphertext
   createdAt: doc.createdAt,
 });
 
@@ -127,7 +119,15 @@ io.on("connection", (socket) => {
         return;
       }
 
-      const saved = await ChatMessage.create({ appointmentId, sender, text });
+      // 🔐 Encrypt before saving
+      const encryptedText = encrypt(text.trim());
+
+      const saved = await ChatMessage.create({
+        appointmentId,
+        sender,
+        text: encryptedText, // store ciphertext
+      });
+
       const msgToSend = toClientDTO(saved);
 
       io.to(appointmentId).emit("message", msgToSend);

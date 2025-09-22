@@ -16,37 +16,39 @@ const DoctorChatRoom = () => {
 
   const messagesEndRef = useRef(null);
 
-  // ✅ Auto-scroll to bottom when new messages arrive
+  // ✅ Backend URL from .env
+  const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
+
+  // ✅ Auto-scroll when messages change
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
-  // Fetch chat history
+  // ✅ Fetch chat history
   useEffect(() => {
     const fetchHistory = async () => {
       try {
-        const res = await axios.get(
-          `https://virtual-health-assistant-backend.onrender.com/api/chat/${appointmentId}`,
-          { headers: { Authorization: `Bearer ${dToken}` } }
-        );
+        const res = await axios.get(`${BACKEND_URL}/api/chat/${appointmentId}`, {
+          headers: { Authorization: `Bearer ${dToken}` },
+        });
         setMessages(res.data);
       } catch (err) {
-        console.error("Failed to load history", err);
+        console.error("❌ Failed to load chat history:", err);
       }
     };
     if (dToken) fetchHistory();
-  }, [appointmentId, dToken]);
+  }, [appointmentId, dToken, BACKEND_URL]);
 
-  // Socket.IO connection
+  // ✅ Socket.IO connection
   useEffect(() => {
     if (!dToken) return;
 
-    const newSocket = io("https://virtual-health-assistant-backend.onrender.com", { query: { token: dToken } });
+    const newSocket = io(BACKEND_URL, { query: { token: dToken } });
     setSocket(newSocket);
 
     newSocket.emit("joinRoom", { appointmentId });
 
-    // ✅ Replace optimistic message when server confirms
+    // Replace optimistic message when confirmed by server
     newSocket.on("message", (msg) => {
       setMessages((prev) => {
         const optimistic = prev.find(
@@ -62,11 +64,16 @@ const DoctorChatRoom = () => {
       });
     });
 
-    newSocket.on("typing", ({ sender }) => sender === "patient" && setTyping(true));
-    newSocket.on("stopTyping", ({ sender }) => sender === "patient" && setTyping(false));
+    // Typing indicators
+    newSocket.on("typing", ({ sender }) => {
+      if (sender === "patient") setTyping(true);
+    });
+    newSocket.on("stopTyping", ({ sender }) => {
+      if (sender === "patient") setTyping(false);
+    });
 
     return () => newSocket.disconnect();
-  }, [appointmentId, dToken]);
+  }, [appointmentId, dToken, BACKEND_URL]);
 
   const handleChange = (e) => {
     setNewMessage(e.target.value);
@@ -95,7 +102,7 @@ const DoctorChatRoom = () => {
     // Optimistic UI
     setMessages((prev) => [...prev, msgData]);
 
-    // Send to server
+    // Send to backend
     socket.emit("chatMessage", msgData);
 
     setNewMessage("");
@@ -113,7 +120,7 @@ const DoctorChatRoom = () => {
           onClick={() => navigate(`/video/${appointmentId}`)}
           className="px-3 py-1 bg-green-500 hover:bg-green-600 rounded-lg text-white text-sm sm:text-base"
         >
-          📹 Start Video Call
+          🎥 Start Video Call
         </button>
       </div>
 
@@ -122,9 +129,9 @@ const DoctorChatRoom = () => {
         {messages.length === 0 ? (
           <p className="text-center text-gray-500">No messages yet...</p>
         ) : (
-          messages.map((msg, idx) => (
+          messages.map((msg) => (
             <div
-              key={msg._id || idx}
+              key={msg._id}
               className={`flex ${msg.sender === "doctor" ? "justify-end" : "justify-start"}`}
             >
               <div
@@ -148,7 +155,6 @@ const DoctorChatRoom = () => {
           ))
         )}
         {typing && <p className="text-sm text-gray-500 italic">Patient is typing...</p>}
-        {/* Auto-scroll anchor */}
         <div ref={messagesEndRef} />
       </div>
 

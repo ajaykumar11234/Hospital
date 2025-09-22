@@ -1,5 +1,7 @@
+// routes/chatRoute.js
 import express from "express";
 import ChatMessage from "../models/ChatMessage.js";
+import { encrypt, decrypt } from "../utils/cryptoUtils.js";
 
 const router = express.Router();
 
@@ -7,7 +9,7 @@ const toClientDTO = (doc) => ({
   _id: doc._id,
   appointmentId: doc.appointmentId,
   sender: doc.sender,
-  text: doc.text,
+  text: doc.text ? decrypt(doc.text) : "",
   createdAt: doc.createdAt,
 });
 
@@ -23,7 +25,7 @@ router.get("/:appointmentId", async (req, res) => {
   }
 });
 
-// ✅ POST route
+// POST route
 router.post("/send", async (req, res) => {
   try {
     const { appointmentId, sender, text } = req.body;
@@ -32,10 +34,12 @@ router.post("/send", async (req, res) => {
       return res.status(400).json({ error: "Missing required fields" });
     }
 
+    const encryptedText = encrypt(text.trim());
+
     const saved = await ChatMessage.create({
       appointmentId,
       sender,
-      text: text.trim(),
+      text: encryptedText,
     });
 
     res.status(201).json(toClientDTO(saved));

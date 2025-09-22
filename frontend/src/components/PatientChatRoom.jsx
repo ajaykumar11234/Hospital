@@ -16,50 +16,54 @@ const PatientChatRoom = () => {
 
   const messagesEndRef = useRef(null);
 
-  // Scroll to bottom when messages change
-  useEffect(
-    () => messagesEndRef.current?.scrollIntoView({ behavior: "smooth" }),
-    [messages]
-  );
+  // ✅ Load backend URL from .env (Vite)
+  const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
+
+  // Scroll to bottom when messages update
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages]);
 
   // Fetch chat history
   useEffect(() => {
     const fetchHistory = async () => {
       try {
-        const res = await axios.get(
-          `https://virtual-health-assistant-backend.onrender.com/api/chat/${appointmentId}`
-        );
+        const res = await axios.get(`${BACKEND_URL}/api/chat/${appointmentId}`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
         setMessages(res.data);
       } catch (err) {
-        console.error("Failed to load chat history", err);
+        console.error("❌ Failed to load chat history:", err);
       }
     };
-    fetchHistory();
-  }, [appointmentId]);
+    if (token) fetchHistory();
+  }, [appointmentId, token, BACKEND_URL]);
 
   // Socket.IO connection
   useEffect(() => {
     if (!token) return;
 
-    const newSocket = io("https://virtual-health-assistant-backend.onrender.com", { query: { token } });
+    const newSocket = io(BACKEND_URL, {
+      query: { token },
+    });
     setSocket(newSocket);
 
     newSocket.emit("joinRoom", { appointmentId });
 
-    newSocket.on("message", (msg) => setMessages((prev) => [...prev, msg]));
+    newSocket.on("message", (msg) =>
+      setMessages((prev) => [...prev, msg])
+    );
 
-    // Typing indicator from doctor
-    newSocket.on(
-      "typing",
-      ({ sender }) => sender === "doctor" && setTyping(true)
-    );
-    newSocket.on(
-      "stopTyping",
-      ({ sender }) => sender === "doctor" && setTyping(false)
-    );
+    // Typing indicators
+    newSocket.on("typing", ({ sender }) => {
+      if (sender === "doctor") setTyping(true);
+    });
+    newSocket.on("stopTyping", ({ sender }) => {
+      if (sender === "doctor") setTyping(false);
+    });
 
     return () => newSocket.disconnect();
-  }, [appointmentId, token]);
+  }, [appointmentId, token, BACKEND_URL]);
 
   const handleChange = (e) => {
     setNewMessage(e.target.value);
@@ -82,17 +86,13 @@ const PatientChatRoom = () => {
     socket.emit("stopTyping", { appointmentId, sender: "patient" });
   };
 
-  const startVideoCall = () => {
-    navigate(`/video/${appointmentId}`);
-  };
-
   return (
     <div className="flex flex-col h-[85vh] max-w-3xl mx-auto bg-white shadow-lg rounded-lg border">
       {/* Header */}
       <div className="p-4 bg-green-600 text-white rounded-t-lg flex justify-between items-center">
         <h2>Chat with Doctor (Appointment #{appointmentId})</h2>
         <button
-          onClick={startVideoCall}
+          onClick={() => navigate(`/video/${appointmentId}`)}
           className="bg-white text-green-600 px-3 py-1 rounded-lg shadow hover:bg-gray-100 transition"
         >
           🎥 Start Video Call
@@ -120,10 +120,12 @@ const PatientChatRoom = () => {
               >
                 <p>{msg.text}</p>
                 <span className="text-xs mt-1 opacity-70">
-                  {new Date(msg.createdAt).toLocaleTimeString([], {
-                    hour: "2-digit",
-                    minute: "2-digit",
-                  })}
+                  {msg.createdAt
+                    ? new Date(msg.createdAt).toLocaleTimeString([], {
+                        hour: "2-digit",
+                        minute: "2-digit",
+                      })
+                    : "-"}
                 </span>
               </div>
             </div>
