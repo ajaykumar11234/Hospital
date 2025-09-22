@@ -15,16 +15,10 @@ const DoctorChatRoom = () => {
   const [typing, setTyping] = useState(false);
 
   const messagesEndRef = useRef(null);
-  const scrollRef = useRef(null);
 
-  // Auto-scroll if near bottom
+  // ✅ Auto-scroll to bottom when new messages arrive
   useEffect(() => {
-    if (scrollRef.current) {
-      const { scrollTop, scrollHeight, clientHeight } = scrollRef.current;
-      if (scrollHeight - scrollTop <= clientHeight + 50) {
-        messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-      }
-    }
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
   // Fetch chat history
@@ -52,7 +46,22 @@ const DoctorChatRoom = () => {
 
     newSocket.emit("joinRoom", { appointmentId });
 
-    newSocket.on("message", (msg) => setMessages((prev) => [...prev, msg]));
+    // ✅ Replace optimistic message when server confirms
+    newSocket.on("message", (msg) => {
+      setMessages((prev) => {
+        const optimistic = prev.find(
+          (m) =>
+            m.sender === msg.sender &&
+            m.text === msg.text &&
+            m._id?.startsWith("temp-")
+        );
+        if (optimistic) {
+          return prev.map((m) => (m._id === optimistic._id ? msg : m));
+        }
+        return [...prev, msg];
+      });
+    });
+
     newSocket.on("typing", ({ sender }) => sender === "patient" && setTyping(true));
     newSocket.on("stopTyping", ({ sender }) => sender === "patient" && setTyping(false));
 
@@ -72,9 +81,23 @@ const DoctorChatRoom = () => {
 
   const sendMessage = () => {
     if (!newMessage.trim() || !socket) return;
-    const msgData = { appointmentId, sender: "doctor", text: newMessage };
+
+    const tempId = `temp-${Date.now()}`;
+    const msgData = {
+      appointmentId,
+      sender: "doctor",
+      text: newMessage,
+      _id: tempId,
+      createdAt: new Date().toISOString(),
+      optimistic: true,
+    };
+
+    // Optimistic UI
+    setMessages((prev) => [...prev, msgData]);
+
+    // Send to server
     socket.emit("chatMessage", msgData);
-    setMessages((prev) => [...prev, { ...msgData, createdAt: new Date().toISOString() }]);
+
     setNewMessage("");
     socket.emit("stopTyping", { appointmentId, sender: "doctor" });
   };
@@ -95,7 +118,7 @@ const DoctorChatRoom = () => {
       </div>
 
       {/* Messages */}
-      <div ref={scrollRef} className="flex-1 overflow-y-auto p-4 space-y-2 bg-gray-50">
+      <div className="flex-1 overflow-y-auto p-4 space-y-2 bg-gray-50">
         {messages.length === 0 ? (
           <p className="text-center text-gray-500">No messages yet...</p>
         ) : (
@@ -104,13 +127,20 @@ const DoctorChatRoom = () => {
               key={msg._id || idx}
               className={`flex ${msg.sender === "doctor" ? "justify-end" : "justify-start"}`}
             >
-              <div className={`px-4 py-2 rounded-lg max-w-xs break-words ${
-                msg.sender === "doctor" ? "bg-blue-500 text-white" : "bg-gray-200 text-gray-900"
-              }`}>
+              <div
+                className={`px-4 py-2 rounded-lg max-w-xs break-words ${
+                  msg.sender === "doctor"
+                    ? "bg-blue-500 text-white"
+                    : "bg-gray-200 text-gray-900"
+                } ${msg.optimistic ? "opacity-70" : ""}`}
+              >
                 <p>{msg.text}</p>
                 <span className="text-xs mt-1 opacity-70 block text-right">
                   {msg.createdAt
-                    ? new Date(msg.createdAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
+                    ? new Date(msg.createdAt).toLocaleTimeString([], {
+                        hour: "2-digit",
+                        minute: "2-digit",
+                      })
                     : "-"}
                 </span>
               </div>
@@ -118,6 +148,7 @@ const DoctorChatRoom = () => {
           ))
         )}
         {typing && <p className="text-sm text-gray-500 italic">Patient is typing...</p>}
+        {/* Auto-scroll anchor */}
         <div ref={messagesEndRef} />
       </div>
 

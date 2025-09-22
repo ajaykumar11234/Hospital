@@ -87,15 +87,11 @@ const updateProfile = async (req, res) => {
   try {
     const userId = req.user.id; 
     if (!userId) return res.status(401).json({ success: false, message: "Unauthorized" });
-
     const { name, phone, address, dob, gender } = req.body;
     const imageFile = req.file;
-
     if (!name || !phone || !dob || !gender) return res.status(400).json({ success: false, message: "Required fields are missing" });
-
     const existingUser = await userModel.findById(userId);
     if (!existingUser) return res.status(404).json({ success: false, message: "User not found" });
-
     let parsedAddress = {};
     if (address) {
       try {
