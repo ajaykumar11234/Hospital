@@ -11,8 +11,11 @@ ENV/
 .env/
 .venv/
 
-# Environment variables
 .env
+flask/.env
+
+# Environment variables
+# .env
 
 # macOS system files
 .DS_Store
