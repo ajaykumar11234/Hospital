@@ -10,7 +10,15 @@ import re
 load_dotenv()
 
 app = Flask(__name__)
-CORS(app)
+
+CORS(
+    app,
+    resources={r"/*": {"origins": [
+        "http://localhost:5173",
+        "https://virtual-health-assistant-app.onrender.com"
+    ]}},
+    supports_credentials=True
+)
 
 GROQ_API_KEY = os.getenv("GROQ_API_KEY")
 if not GROQ_API_KEY:
