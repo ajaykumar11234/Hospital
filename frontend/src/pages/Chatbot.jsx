@@ -10,11 +10,11 @@ function Chatbot() {
   const [loading, setLoading] = useState(false);
 
   const userId = "demo-user"; // Replace with actual user session in real app
-  const messagesEndRef = useRef(null); // Ref for auto scroll
+  const messagesEndRef = useRef(null);
 
-  const API_BASE = import.meta.env.VITE_FLASK_BACKEND_URL; // ✅ from .env
+  const API_BASE = import.meta.env.VITE_FLASK_BACKEND_URL;
 
-  // Scroll to bottom whenever messages update
+  // Scroll to bottom when new messages
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
@@ -34,17 +34,20 @@ function Chatbot() {
       });
 
       const botData = res.data;
-      let botMsgText = botData.response || "⚠️ Sorry, I didn't get a response.";
-
-      const botMsg = { sender: "bot", text: botMsgText };
+      const botMsg = {
+        sender: "bot",
+        text: botData.response || "⚠️ Sorry, I didn't get a response.",
+      };
       setMessages((prev) => [...prev, botMsg]);
     } catch (err) {
       console.error(err);
-      const errMsg = {
-        sender: "bot",
-        text: "⚠️ Sorry, I’m having trouble right now. Please try again later.",
-      };
-      setMessages((prev) => [...prev, errMsg]);
+      setMessages((prev) => [
+        ...prev,
+        {
+          sender: "bot",
+          text: "⚠️ Sorry, I’m having trouble right now. Please try again later.",
+        },
+      ]);
     } finally {
       setLoading(false);
     }
@@ -74,63 +77,82 @@ function Chatbot() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-pink-50 via-purple-50 to-indigo-50 p-4 flex justify-center items-center">
-      <div className="w-full sm:w-[95%] md:w-3/4 lg:w-2/3 bg-white/90 backdrop-blur-lg rounded-2xl shadow-xl border border-gray-200 p-4 flex flex-col h-[80vh]">
+    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-indigo-100 flex justify-center items-center px-4">
+      <div className="w-full sm:w-[95%] md:w-3/4 lg:w-2/3 bg-white rounded-2xl shadow-2xl border border-gray-100 flex flex-col h-[85vh] overflow-hidden">
         
         {/* Header */}
-        <div className="flex items-center space-x-2 mb-4 border-b pb-3">
-          <Bot className="h-6 w-6 text-purple-600" />
-          <h2 className="text-lg sm:text-xl font-bold text-gray-800">AI Doctor Chatbot</h2>
+        <div className="flex items-center gap-3 bg-gradient-to-r from-purple-600 to-pink-600 text-white px-5 py-4 shadow-md">
+          <div className="bg-white/20 p-2 rounded-full">
+            <Bot className="h-6 w-6" />
+          </div>
+          <div>
+            <h2 className="text-lg font-semibold">AI Doctor</h2>
+            <p className="text-xs text-white/80">Online • 24/7 Assistance</p>
+          </div>
         </div>
 
         {/* Messages */}
-        <div className="flex-1 overflow-y-auto space-y-4 p-2">
+        <div className="flex-1 overflow-y-auto px-4 py-6 space-y-5 bg-gradient-to-b from-white to-purple-50">
           {messages.map((msg, idx) => (
             <div
               key={idx}
-              className={`flex items-start space-x-2 ${
+              className={`flex items-end gap-2 ${
                 msg.sender === "user" ? "justify-end" : "justify-start"
               }`}
             >
               {msg.sender === "bot" && (
-                <Bot className="h-6 w-6 text-purple-500 flex-shrink-0" />
+                <div className="bg-purple-100 p-2 rounded-full">
+                  <Bot className="h-5 w-5 text-purple-600" />
+                </div>
               )}
 
               <div
-                className={`px-3 sm:px-4 py-2 rounded-xl max-w-[75%] shadow break-words ${
+                className={`px-4 py-3 rounded-2xl max-w-[75%] shadow-sm text-sm leading-relaxed ${
                   msg.sender === "user"
-                    ? "bg-blue-600 text-white ml-auto"
-                    : "bg-gray-100 text-gray-800"
+                    ? "bg-blue-600 text-white rounded-br-none"
+                    : "bg-gray-100 text-gray-800 rounded-bl-none"
                 }`}
               >
                 {renderMessageContent(msg)}
               </div>
 
               {msg.sender === "user" && (
-                <User className="h-6 w-6 text-blue-500 flex-shrink-0" />
+                <div className="bg-blue-100 p-2 rounded-full">
+                  <User className="h-5 w-5 text-blue-600" />
+                </div>
               )}
             </div>
           ))}
+
+          {/* Bot Typing Indicator */}
           {loading && (
-            <p className="text-gray-500 italic">🤖 Thinking...</p>
+            <div className="flex items-center gap-2 text-gray-500 text-sm">
+              <Bot className="h-5 w-5 text-purple-500" />
+              <div className="flex gap-1">
+                <span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></span>
+                <span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce delay-150"></span>
+                <span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce delay-300"></span>
+              </div>
+            </div>
           )}
+
           <div ref={messagesEndRef} />
         </div>
 
-        {/* Input */}
-        <div className="mt-4 flex flex-col sm:flex-row items-center space-y-2 sm:space-y-0 sm:space-x-2">
+        {/* Input Bar */}
+        <div className="px-4 py-3 bg-white border-t flex items-center gap-2">
           <input
             type="text"
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyPress={handleKeyPress}
             placeholder="Type your symptoms or questions..."
-            className="flex-1 px-4 py-3 rounded-xl border border-gray-300 focus:ring-2 focus:ring-purple-500 focus:outline-none w-full"
+            className="flex-1 px-4 py-3 rounded-full border border-gray-300 focus:ring-2 focus:ring-purple-500 focus:outline-none text-sm"
           />
           <button
             onClick={sendMessage}
             disabled={loading || !input.trim()}
-            className="bg-gradient-to-r from-purple-600 to-pink-600 text-white px-4 py-3 rounded-xl shadow hover:scale-105 transition w-full sm:w-auto"
+            className="bg-gradient-to-r from-purple-600 to-pink-600 text-white p-3 rounded-full shadow hover:scale-105 transition"
           >
             <Send className="h-5 w-5" />
           </button>
