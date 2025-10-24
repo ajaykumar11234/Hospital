@@ -18,7 +18,7 @@ import Chatbot from './pages/Chatbot.jsx';
 import ChatRoom from './components/PatientChatRoom.jsx';
 import PatientChatRoom from './components/PatientChatRoom.jsx';
 import MedicineReminder from './pages/MedicineReminder.jsx';
-import VideoCall from './pages/VideoCall.jsx';
+import PatientVideoCall from './pages/PatientVideoCall.jsx';
 import MyDoctors from './pages/MyDoctors.jsx';
 import BuyMedicine from "./pages/BuyMedicine";
 import MyOrders from './pages/MyOrders.jsx';
@@ -65,7 +65,7 @@ const App = () => {
             <Route path="/chatbot" element={<Chatbot/>}/>
             <Route path="/chat/:appointmentId" element={<PatientChatRoom />} /> 
             <Route path="/reminder" element={<MedicineReminder />} />
-            <Route path="/video/:appointmentId" element={<VideoCall />} />
+            <Route path="/video/:appointmentId" element={<PatientVideoCall />} />
             <Route path="/live-chat" element={<MyDoctors/>}/>
             <Route path="/buy-medicine" element={<BuyMedicine />}/>
             <Route path="/my-orders" element={<MyOrders />}/>

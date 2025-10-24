@@ -34,6 +34,7 @@ const navigate=useNavigate()
           toast.error(data.message);
         }
       } else {
+      console.log(`${backendUrl}`)
         const { data } = await axios.post(`${backendUrl}/api/user/login`, { 
           password, 
           email 

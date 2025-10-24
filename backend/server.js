@@ -1,4 +1,3 @@
-// --------------------- server.js ---------------------
 import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
@@ -17,9 +16,9 @@ import videoRouter from "./routes/videoRoute.js";
 import medicineRouter from "./routes/medicineRoute.js";
 import orderRouter from "./routes/orderRoute.js";
 
-import ChatMessage from "./models/ChatMessage.js";
 import { checkReminders } from "./utils/reminderScheduler.js";
-import { encrypt, decrypt } from "./utils/cryptoUtils.js";
+import { initVideoSocket } from "./utils/videoSocket.js";
+import { initChatSocket } from "./utils/chatSocket.js";
 
 dotenv.config();
 
@@ -31,9 +30,7 @@ connectDB()
   .then(() => console.log("✅ MongoDB connected"))
   .catch((err) => console.error("❌ DB connection error:", err));
 
-connectCloudinary().catch((err) =>
-  console.error("❌ Cloudinary init error:", err)
-);
+connectCloudinary().catch((err) => console.error("❌ Cloudinary init error:", err));
 
 // ---------- Allowed Origins ----------
 const allowedOrigins = [
@@ -41,13 +38,9 @@ const allowedOrigins = [
   "http://localhost:5174",
   "http://localhost:5175",
   "https://virtual-health-assistant-admin.onrender.com",
-  "https://virtual-health-assistant-app.onrender.com",
+  "https://virtual-health-assistant-app.onrender.com"
 ];
-if (process.env.FRONTEND_ORIGIN) {
-  allowedOrigins.push(process.env.FRONTEND_ORIGIN);
-} else if (process.env.NODE_ENV === "production") {
-  allowedOrigins.push("*");
-}
+if (process.env.FRONTEND_ORIGIN) allowedOrigins.push(process.env.FRONTEND_ORIGIN);
 
 // ---------- Middlewares ----------
 app.use(express.json());
@@ -69,18 +62,17 @@ app.use("/api/video", videoRouter);
 app.use("/api/medicines", medicineRouter);
 app.use("/api/orders", orderRouter);
 
-// Test reminder trigger
+// ---------- Health + Reminder ----------
 app.get("/api/run-reminder-check", async (req, res) => {
   await checkReminders();
   res.send("✅ Reminder check completed");
 });
 
-// Root health check
 app.get("/", (req, res) => {
-  res.send("API Working Great..");
+  res.send("✅ MediConnect API Working Fine");
 });
 
-// ---------- Socket.IO setup ----------
+// ---------- Socket.IO ----------
 const server = createServer(app);
 const io = new Server(server, {
   cors: {
@@ -90,89 +82,11 @@ const io = new Server(server, {
   },
 });
 
-// ---------- Helper: normalize messages ----------
-const toClientDTO = (doc) => ({
-  _id: doc._id,
-  appointmentId: doc.appointmentId,
-  sender: doc.sender,
-  text: doc.text ? decrypt(doc.text) : "", // 🔐 decrypt stored ciphertext
-  createdAt: doc.createdAt,
-});
+// ---------- Initialize Socket Modules ----------
+initVideoSocket(io);
+initChatSocket(io);
 
-// ---------- All socket events ----------
-io.on("connection", (socket) => {
-  console.log("⚡ User connected:", socket.id);
-
-  // ---------- Join Chat Room ----------
-  socket.on("joinRoom", ({ appointmentId }) => {
-    if (!appointmentId) return;
-    socket.join(appointmentId);
-    console.log(`➡️ ${socket.id} joined room ${appointmentId}`);
-  });
-
-  // ---------- Chat Messages ----------
-  socket.on("chatMessage", async (data, ack) => {
-    try {
-      const { appointmentId, sender, text } = data;
-      if (!appointmentId || !sender || !text?.trim()) {
-        if (ack) ack({ ok: false, error: "Invalid message" });
-        return;
-      }
-
-      // 🔐 Encrypt before saving
-      const encryptedText = encrypt(text.trim());
-
-      const saved = await ChatMessage.create({
-        appointmentId,
-        sender,
-        text: encryptedText, // store ciphertext
-      });
-
-      const msgToSend = toClientDTO(saved);
-
-      io.to(appointmentId).emit("message", msgToSend);
-
-      if (ack) ack({ ok: true, data: msgToSend });
-    } catch (err) {
-      console.error("❌ chatMessage error:", err);
-      if (ack) ack({ ok: false, error: "Failed to send message" });
-    }
-  });
-
-  // ---------- Typing Indicators ----------
-  socket.on("typing", ({ appointmentId, sender }) => {
-    socket.to(appointmentId).emit("typing", { sender });
-  });
-
-  socket.on("stopTyping", ({ appointmentId, sender }) => {
-    socket.to(appointmentId).emit("stopTyping", { sender });
-  });
-
-  // ---------- Video Call Signaling ----------
-  socket.on("joinVideo", ({ appointmentId }) => {
-    socket.join(`video-${appointmentId}`);
-    console.log(`📹 ${socket.id} joined video room ${appointmentId}`);
-  });
-
-  socket.on("offer", ({ appointmentId, offer }) => {
-    socket.to(`video-${appointmentId}`).emit("offer", offer);
-  });
-
-  socket.on("answer", ({ appointmentId, answer }) => {
-    socket.to(`video-${appointmentId}`).emit("answer", answer);
-  });
-
-  socket.on("candidate", ({ appointmentId, candidate }) => {
-    socket.to(`video-${appointmentId}`).emit("candidate", candidate);
-  });
-
-  // ---------- Disconnect ----------
-  socket.on("disconnect", () => {
-    console.log("❌ User disconnected:", socket.id);
-  });
-});
-
-// ---------- Start server ----------
-server.listen(port, () => {
-  console.log(`🚀 Server + Socket.IO running on port ${port}`);
+// ---------- Start Server ----------
+server.listen(port, "0.0.0.0", () => {
+  console.log(`🚀 MediConnect Server + Socket.IO running on port ${port}`);
 });

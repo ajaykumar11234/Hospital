@@ -19,7 +19,7 @@ import DoctorsList from './pages/Admin/DoctorsList';
 import AddMedicine from './pages/Admin/AddMedicine.jsx';
 
 // Doctor pages
-import VideoCall from './pages/Doctor/VideoCall.jsx';
+import DoctorVideoCall from './pages/Doctor/DoctorVideoCall.jsx';
 import DoctorDashboard from './pages/Doctor/DoctorDashboard';
 import DoctorAppointment from './pages/Doctor/DoctorAppointment';
 import DoctorProfile from './pages/Doctor/DoctorProfile';
@@ -67,7 +67,7 @@ const App = () => {
                     <Route path="/doctor-profile" element={<DoctorProfile />} />
                     <Route path="/active-patients" element={<ActivePatients/>}/>
                     <Route path="/doctor/chat/:appointmentId" element={<DoctorChatRoom />} />
-                    <Route path="/video/:appointmentId" element={<VideoCall />} />
+                    <Route path="/video/doctor/:appointmentId" element={<DoctorVideoCall />} />
                   </>
                 )}
               </Routes>
