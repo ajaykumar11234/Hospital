@@ -15,6 +15,7 @@ import reminderRouter from "./routes/reminderRoute.js";
 import videoRouter from "./routes/videoRoute.js";
 import medicineRouter from "./routes/medicineRoute.js";
 import orderRouter from "./routes/orderRoute.js";
+import healthRecordRouter from "./routes/healthRecordRoute.js";
 
 import { checkReminders } from "./utils/reminderScheduler.js";
 import { initVideoSocket } from "./utils/videoSocket.js";
@@ -61,6 +62,7 @@ app.use("/api/reminder", reminderRouter);
 app.use("/api/video", videoRouter);
 app.use("/api/medicines", medicineRouter);
 app.use("/api/orders", orderRouter);
+app.use("/api/health-records", healthRecordRouter);
 
 // ---------- Health + Reminder ----------
 app.get("/api/run-reminder-check", async (req, res) => {

@@ -69,21 +69,25 @@ const doctorList = async (req, res) => { // Added req, res parameters which were
 const loginDoctor= async(req,res)=>{
 try{
 const {email,password}=req.body
+console.log('Doctor login attempt:', email);
 const doctor=await doctorModel.findOne({email})
 if(!doctor){
-return res.json({success:false,message:"Invalid credentials"})}
+console.log('Doctor not found:', email);
+return res.json({success:false,message:"Doctor not found. Please check your email or contact admin."})}
 
 const isMatch=await bcrypt.compare(password,doctor.password)
+console.log('Password match:', isMatch);
 
 if(isMatch){
 const token=jwt.sign({id:doctor._id},process.env.JWT_SECRET)
+console.log('Doctor login successful:', doctor.name);
 res.json({success:true,token})
 }
 else{
-res.json({success:false,message:"Invalid credentials"})}
+res.json({success:false,message:"Invalid password"})}
 }
 catch(error){
-console.log(error)
+console.log('Doctor login error:', error)
 res.json({success:false,message:error.message})
 }
 }

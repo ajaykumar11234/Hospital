@@ -14,7 +14,9 @@ const AppContextProvider = ({ children }) => {
   const currencySymbol = '₹';
 
   const loadUserProfileData = useCallback(async () => {
-    if (!token) {
+    // Only fetch user profile if we're logged in as a user (not doctor/admin)
+    const role = localStorage.getItem('role');
+    if (!token || role === 'doctor' || role === 'admin') {
       setUserData(null);
       setUser(null);
       return;
@@ -36,10 +38,7 @@ const AppContextProvider = ({ children }) => {
         setUser(null);
       }
     } catch (error) {
-      toast.error("Failed to load user profile");
-      console.error(error);
-      setToken(false);
-      localStorage.removeItem('token');
+      console.error('Error loading user profile:', error);
       setUserData(null);
       setUser(null);
     }

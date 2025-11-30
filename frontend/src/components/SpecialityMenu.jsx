@@ -39,6 +39,12 @@ const featuresData = [
     icon: assets.medicalStore,
     link: '/buy-medicine',
   },
+  {
+    name: 'Health Records',
+    description: 'Store and manage your medical documents securely.',
+    icon: assets.stesthoscope,
+    link: '/my-health-records',
+  },
 ];
 
 const FeaturesMenu = () => {
@@ -53,7 +59,7 @@ const FeaturesMenu = () => {
       </p>
 
       {/* Features Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-8 justify-center">
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8 justify-center">
         {featuresData.map((feature, index) => (
           <Link
             key={index}

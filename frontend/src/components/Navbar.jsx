@@ -2,12 +2,14 @@ import React, { useState, useContext, useEffect, useRef } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import { assets } from '../assets/assets_frontend/assets';
 import { AppContext } from '../context/AppContextProvider';
+import { AuthContext } from '../context/AuthContext';
 
 const Navbar = () => {
   const navigate = useNavigate();
   const [showMenu, setShowMenu] = useState(false);
   const [showProfileMenu, setShowProfileMenu] = useState(false);
-  const { token, setToken, user, setUser } = useContext(AppContext);
+  const { user, setUser } = useContext(AppContext);
+  const { token, setToken, logout: authLogout } = useContext(AuthContext);
 
   const menuRef = useRef(null);
   const profileRef = useRef(null);
@@ -16,7 +18,8 @@ const Navbar = () => {
     setToken('');
     setUser(null);
     localStorage.removeItem('token');
-    navigate('/');
+    authLogout();
+    navigate('/login');
     setShowProfileMenu(false);
   };
 
@@ -43,7 +46,7 @@ const Navbar = () => {
     isActive ? "text-primary font-semibold" : "hover:text-primary";
 
   const navLinks = [
-    { to: '/', label: 'Home' },
+    { to: '/home', label: 'Home' },
     { to: '/check-disease', label: 'Check-Disease' },
     { to: '/chatbot', label: 'Chat-Bot' },
     { to: '/reminder', label: 'Reminder' },
@@ -59,7 +62,7 @@ const Navbar = () => {
       <div className='flex items-center justify-between'>
         {/* Logo */}
         <img
-          onClick={() => { navigate("/"); closeMenus(); }}
+          onClick={() => { navigate("/home"); closeMenus(); }}
           src={assets.logo}
           alt="logo"
           className="h-14 w-auto cursor-pointer"
@@ -94,6 +97,7 @@ const Navbar = () => {
                 <div className='absolute top-12 right-0 bg-white rounded shadow-md p-4 z-30 min-w-[160px]'>
                   <p onClick={() => { navigate('/my-profile'); closeMenus(); }} className='hover:text-black cursor-pointer mb-2'>My Profile</p>
                   <p onClick={() => { navigate('/my-appointments'); closeMenus(); }} className='hover:text-black cursor-pointer mb-2'>My Appointments</p>
+                  <p onClick={() => { navigate('/my-health-records'); closeMenus(); }} className='hover:text-black cursor-pointer mb-2'>Health Records</p>
                   <p onClick={() => { navigate('/my-orders'); closeMenus(); }} className='hover:text-black cursor-pointer mb-2'>My Orders</p>
                   <p onClick={logout} className='hover:text-black cursor-pointer'>Logout</p>
                 </div>
